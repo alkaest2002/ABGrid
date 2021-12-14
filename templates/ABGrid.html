@@ -1,0 +1,206 @@
+{% macro network_info(info) %}
+  {{ info.nodes }}N, {{ info.edges }}V, {{ info.degree_centralization | round(2) }} centralization, {{ info.clustering_coefficient | round(2) }} clustering
+{% endmacro %}
+
+{% macro network_tabular(data) %}
+  <table class="report-table-tabular">
+    <tr>
+      <th>Lett</th>
+      <th>Scelte</th>
+      <th>DC</th>
+      <th>EC</th>
+      <th>BC</th>
+      <th>CC</th>
+      <th>IS</th>
+    </tr>
+    {% for k in data.keys() %}
+      <tr>
+        <td>{{ k }}</td>
+        <td>{{ data[k].links }}</td>
+        <td>{{ data[k].dc | int }}</td>
+        <td>{{ data[k].ec | int }}</td>
+        <td>{{ data[k].bc | int }}</td>
+        <td>{{ data[k].cc | int }}</td>
+        <td>{{ data[k].isolates }}</td>
+      </tr>
+    {% endfor %}
+  </table>
+{% endmacro %}
+
+{% macro network(type, question, graph, info, data) %}
+  <table class="report-table-graph">
+    <tr>
+      <td>
+        <p  class="question">
+          {{ type }}. {{ question }}
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <img src="{{ graph }}" class="graph-main" />
+      </td>
+    </tr>
+    <tr>
+      <td class="hero">{{ type }}</td>
+    </tr>
+    <tr>
+      <td>
+        <p class="g_info">
+          {{ network_info(info) }}
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        {{ network_tabular(data) }}
+      </td>
+    </tr>
+  </table>
+{% endmacro %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        font-size: 1em;
+        font-family: Arial, Helvetica, sans-serif;
+        box-sizing: border-box
+      }
+
+      html {
+        font-size: 12pt;
+      }
+    </style>
+    <style>
+    	@page {
+    		width: 210mm;
+		    height: 297mm;
+        padding: 0;
+        margin: 20mm;
+        page-break-after: always;
+      }
+    	
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+
+      th, td {
+        text-align: center;
+      }
+
+      .intro h1 {
+        font-size: 2em;
+      }
+
+      .disclaimer {
+        margin-top: 10px;
+        margin-bottom: 40px;
+      }
+
+      .hero {
+        font-size: 3em;
+        text-align: center;
+        vertical-align: middle;
+        font-weight: bold;
+        padding-top: 20px;
+        padding-bottom: 20px;
+      }
+
+      .report-info {
+        padding-bottom: 20px;
+        border-bottom: 1px solid #000;
+      }
+
+      .report-table-graph {
+        margin-top: 20px;
+      }
+
+      .question {
+        text-align: left;
+      }
+
+      .g_info {
+        text-align: left;
+        margin-bottom: 10px;
+      }
+
+      .graph-main {
+        display: block;
+        margin: auto;
+      }
+
+      .report-table-tabular {
+        border-top: 2px solid #000;
+        border-bottom: 2px solid #000;
+      }
+
+      .report-table-tabular th {
+        padding: 5px 3px;
+        background-color: #ddd;
+        border-bottom: 1px solid #000;
+      }
+
+      .report-table-tabular td {
+        padding: 5px 3px;
+        border-top: 1px solid #ddd;
+      }
+
+      .report-table-tabular tr:nth-child(odd) td {
+        background-color: #eee;
+      }
+
+      .legend {
+        margin-top: 25px;
+      }
+
+      .footer {
+        margin-top: 50px;
+        font-size: .8em;
+        color: #555;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="intro">
+        <h1>AB-GRID</h1>
+      </div>
+      <div class="disclaimer">
+        <em>
+          <b>Avvertenza</b>: questo report è stato generato automaticamente da un computer. La sua interpretazione è riservata al personale che ha svolto il corso "Dinamiche di gruppo e introduzione alla network analysis."
+        </em>
+      </div>
+      <div class="report-info">
+        <b>
+          <span>{{ assessment_info | upper }} - {{ group_id | upper }}</span><br/>
+        </b>
+      </div>
+      <table class="report-table">
+        <tr>
+        <td>
+          {{ network("A", ga_question, ga_graph, ga_info, ga_data) }}
+        </td>
+        <td></td>
+        <td>
+          {{ network("B", gb_question, gb_graph, gb_info, gb_data) }}
+        </td>
+        </tr>
+      </table>
+      <div class="legend">
+        <b>DC</b> = Degree Centrality (rango), <b>EC</b> = Eigenvalue Centrality (rango), <b>BC</b> = Betweenness Centrality (rango)<br /><b>CC</b> = Closenness Centrality (rango), <b>IS</b> = Isolate.
+      </div>
+      <div class="footer">
+        <p>Elaborazione concettuale e grafica: Ten. Col CSArs Pierpaolo CALANNA, PhD - Cap CSArs Gaetano BUONAIUTO</p>
+      </div>
+    </div>
+  </body>
+</html>
