@@ -1,0 +1,38 @@
+titolo: "21° Concorso Marescialli Interni, Tirocinio 2021"
+gruppo: Gruppo 8
+domandaA: Con chi vorresti lavorare?
+domandaB: Con chi non vorresti lavorare?
+scelteA:
+  - A: B
+  - A: E
+  - B: E
+  - B: F
+  - C: D
+  - C: F
+  - D: B
+  - D: F
+  - E: B
+  - E: D
+  - F: B
+  - F: C
+  - G: B
+  - G: C
+  - H: B
+  - H: G
+scelteB:
+  - A: F
+  - A: G
+  - B: F
+  - B: G
+  - C: B
+  - C: E
+  - D: E
+  - D: G
+  - E: G
+  - E: H
+  - F: A
+  - F: D
+  - G: D
+  - G: E
+  - H: B
+  - H: G

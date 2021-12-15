@@ -11,17 +11,17 @@
       <th>EC</th>
       <th>BC</th>
       <th>CC</th>
-      <th>IS</th>
+      <th>NI</th>
     </tr>
     {% for k in data.keys() %}
       <tr>
         <td>{{ k }}</td>
-        <td>{{ data[k].links }}</td>
+        <td>{{ data[k].ln }}</td>
         <td>{{ data[k].dc | int }}</td>
         <td>{{ data[k].ec | int }}</td>
         <td>{{ data[k].bc | int }}</td>
         <td>{{ data[k].cc | int }}</td>
-        <td>{{ data[k].isolates }}</td>
+        <td>{{ data[k].ni }}</td>
       </tr>
     {% endfor %}
   </table>
@@ -196,7 +196,7 @@
         </tr>
       </table>
       <div class="legend">
-        <b>DC</b> = Degree Centrality (rango), <b>EC</b> = Eigenvalue Centrality (rango), <b>BC</b> = Betweenness Centrality (rango)<br /><b>CC</b> = Closenness Centrality (rango), <b>IS</b> = Isolate.
+        <b>DC</b> = Degree Centrality (rango), <b>EC</b> = Eigenvalue Centrality (rango), <b>BC</b> = Betweenness Centrality (rango)<br /><b>CC</b> = Closenness Centrality (rango), <b>NI</b> = No Indegree.
       </div>
       <div class="footer">
         <p>Elaborazione concettuale e grafica: Ten. Col CSArs Pierpaolo CALANNA, PhD - Cap CSArs Gaetano BUONAIUTO</p>
