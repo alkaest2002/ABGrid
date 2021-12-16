@@ -1,3 +1,14 @@
+{% macro get_barcode(group, participant) %}
+  <span class="barcode">*{{group}}!{{participant}}*</span>
+{% endmacro %}
+
+{% macro get_likert(likert) %}
+  <div class="bubble">
+    {% for option in likert %}
+      <span>{{ option }}</span>
+    {% endfor %}
+  </div>
+{% endmacro%}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -26,48 +37,50 @@
         margin: 20mm;
         page-break-after: always;
       }
+
+      .page {
+    		width: 210mm;
+		    height: 297mm;
+        padding: 0;
+        margin: 20mm;
+        page-break-after: always;
+      }
     	
-      @font-face {
-          font-family: 'omrregular';
-          src: url('omrbubbles-webfont.woff2') format('woff2'),
-              url('omrbubbles-webfont.woff') format('woff');
-          font-weight: normal;
-          font-style: normal;
-
-      }
-      
-      @font-face {
-          font-family: '3_of_9_barcoderegular';
-          src: url('3of9_new-webfont.woff2') format('woff2'),
-              url('3of9_new-webfont.woff') format('woff');
-          font-weight: normal;
-          font-style: normal;
-
-      }
-
       .bubble span {
         display: inline-block;
         margin-right: 5px;
-        font-family: "omrregular";
+        font-family: "OMR";
+        font-size: 11pt;
       }
 
       .barcode {
-        font-family: "3_of_9_barcoderegular";
+        font-family: "3 of 9 Barcode";
+        font-size: 40pt;
       }
 
     </style>
   </head>
   <body>
-    <div class="page">
-      <div class="intro">
-        <h1><b>AB</b>-GRID</h1>
-      </div>
-      <div class="bubble">
-        <span>A</span>
-      </div>
-      <div>
-        <span class="barcode">{{ barcode }}</span>
-      </div>
-    </div>
+    {% for group in groups %}
+      {% for participant in likert %}
+        <div class="page">
+          <div class="intro">
+            <h1><b>AB</b>-GRID</h1>
+          </div>
+          <div>
+            <p><b>{{ ga_question }}</b></p>
+            {{ get_likert(likert) }}
+          </div>
+          <div>
+            <p><b>{{ gb_question }}</b></p>
+            {{ get_likert(likert) }}
+          </div>
+          <div>
+            <span class="barcode">{{ get_barcode(group,participant) }}</span><br>
+            <span class="barcode_plain">gruppo: {{ group }}, partecipante: {{ participant }}</span>
+          </div>
+        </div>
+      {% endfor %}
+    {% endfor %}
   </body>
 </html>
