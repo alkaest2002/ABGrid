@@ -1,27 +1,27 @@
 {% macro network_info(info) %}
-NDS {{ info.nodes }}, VTS {{ info.edges }}, CNT {{ info.degree_centralization | round(2) }}, CLS {{ info.clustering_coefficient | round(2) }}, RCP {{ info.reciprocity | round(2) }}
+ND {{ info.nodes }}, VT {{ info.edges }}, DC {{ (info.degree_centralization * 100)|round|int }}%, CL {{ (info.clustering_coefficient * 100)|round|int }}%, RP {{ (info.reciprocity * 100)|round|int }}%
 {% endmacro %}
 
 {% macro network_tabular(data) %}
   <table class="report-table-tabular">
     <tr>
-      <th>Id</th>
-      <th>Scelte</th>
-      <th>IDC</th>
-      <th>EVC</th>
-      <th>BSC</th>
-      <th>CSC</th>
-      <th>NIL</th>
+      <th>ID</th>
+      <th>SCELTE</th>
+      <th>IC</th>
+      <th>EC</th>
+      <th>BC</th>
+      <th>CC</th>
+      <th>NI</th>
     </tr>
     {% for k in data.keys() %}
       <tr>
         <td>{{ k }}</td>
         <td>{{ data[k].lns }}</td>
-        <td>{{ data[k].idc | int }}</td>
-        <td>{{ data[k].evc | int }}</td>
-        <td>{{ data[k].bcs | int }}</td>
-        <td>{{ data[k].ccs | int }}</td>
-        <td>{{ data[k].nil }}</td>
+        <td>{{ data[k].ic | int }}</td>
+        <td>{{ data[k].ec | int }}</td>
+        <td>{{ data[k].bc | int }}</td>
+        <td>{{ data[k].cc | int }}</td>
+        <td>{{ data[k].ni }}</td>
       </tr>
     {% endfor %}
   </table>
@@ -196,7 +196,7 @@ NDS {{ info.nodes }}, VTS {{ info.edges }}, CNT {{ info.degree_centralization | 
         </tr>
       </table>
       <div class="legend">
-        <b>NDS</b> = Number of nodes, <b>VTS</b> = Number of Vertices, <b>CNT</b> = Degree Centralization, <b>CLS</b> = Global Clustering, <b>RCP</b> = Reciprocity, <b>IDC</b> = In-Degree Centrality (rango), <b>EVC</b> = Eigenvalue Centrality (rango)<br /><b>BCS</b> = Betweenness Centrality (rango), <b>CCS</b> = Closenness Centrality (rango), <b>NIL</b> = No Indegree.
+        <b>ND</b> = Number of nodes, <b>VT</b> = Number of Vertices, <b>DC</b> = Degree Centralization, <b>CL</b> = Global Clustering<br/><b>RP</b> = Reciprocity, <b>ID</b> = In-Degree Centrality (rango), <b>EC</b> = Eigenvalue Centrality (rango)<br /><b>BC</b> = Betweenness Centrality (rango), <b>CC</b> = Closenness Centrality (rango), <b>NI</b> = No In-Degree.
       </div>
       <div class="footer">
         <p>Elaborazione concettuale e grafica: Ten. Col CSArs Pierpaolo CALANNA, PhD - Cap CSArs Gaetano BUONAIUTO</p>
