@@ -1,5 +1,7 @@
 {% macro network_info(info) %}
-ND {{ info.nodes }}, VT {{ info.edges }}, DC {{ (info.degree_centralization * 100)|round|int }}%, CL {{ (info.clustering_coefficient * 100)|round|int }}%, RP {{ (info.reciprocity * 100)|round|int }}%
+  <span>
+    ND {{ info.nodes }}, ED {{ info.edges }}, DC {{ (info.degree_centralization * 100)|round|int }}%, CL {{ (info.clustering_coefficient * 100)|round|int }}%, RP {{ (info.reciprocity * 100)|round|int }}%
+  </span>
 {% endmacro %}
 
 {% macro network_tabular(data) %}
@@ -192,6 +194,7 @@ ND {{ info.nodes }}, VT {{ info.edges }}, DC {{ (info.degree_centralization * 10
         bottom: -20px;
         font-size: .8em;
         color: #555;
+        text-align: justify;
       }
 
     </style>
@@ -207,7 +210,7 @@ ND {{ info.nodes }}, VT {{ info.edges }}, DC {{ (info.degree_centralization * 10
       </div>
       <div class="disclaimer">
         <em>
-          <b>Avvertenza</b>: questo report è stato generato automaticamente da un computer. La sua interpretazione è riservata al personale che ha svolto il corso "Dinamiche di gruppo e introduzione alla Network Analysis."
+          Il presente report è stato generato da un computer. La sua interpretazione è riservata agli psicologi e/o periti selettori che hanno frequentato il corso in "Dinamiche di gruppo e introduzione alla Network Analysis."
         </em>
       </div>
       <div class="report-info">
@@ -227,10 +230,10 @@ ND {{ info.nodes }}, VT {{ info.edges }}, DC {{ (info.degree_centralization * 10
         </tr>
       </table>
       <div class="legend">
-        <b>ND</b> = Number of nodes, <b>VT</b> = Number of Vertices, <b>DC</b> = Degree Centralization, <b>CL</b> = Global Clustering<br/><b>RP</b> = Reciprocity, <b>IC</b> = In-Degree Centrality (rango), <b>PR</b> = PageRank Centrality (rango)<br /><b>BC</b> = Betweenness Centrality (rango), <b>CC</b> = Closenness Centrality (rango), <b>NI</b> = No In-Degree.
+        <b>ND</b> = Number of Nodes, <b>ED</b> = Number of Edges, <b>DC</b> = Degree Centralization, <b>CL</b> = Global Clustering<br/><b>RP</b> = Reciprocity, <b>IC</b> = In-Degree Centrality (rango), <b>PR</b> = PageRank Centrality (rango)<br /><b>BC</b> = Betweenness Centrality (rango), <b>CC</b> = Closenness Centrality (rango), <b>NI</b> = No In-Degree.
       </div>
       <div class="footer">
-        <p><b>Ten. Col CSArs Pierpaolo CALANNA, PhD - Cap CSArs Gaetano BUONAIUTO</b>. L'impaginazione del presente report, la scelta e la personalizzazione dei grafici, nonché la scelta degli indici quantitativi sono protetti da licenza Creative Commonos: Attribuzione - Non opere derivate 4.0 Internazionale (https://creativecommons.org/licenses/by-nd/4.0).</p>
+        <p><b>Autori</b>: Dr. Pierpaolo CALANNA, PhD, Dr. Gaetano BUONAIUTO (2021-{{ year }}), <b>Licenza d'uso</b>: l'impaginazione del presente report, la scelta e la personalizzazione dei grafici, nonché la scelta degli indici quantitativi sono regolati da licenza Creative Commons: Attribuzione - Non opere derivate 4.0 Internazionale (https://creativecommons.org/licenses/by-nd/4.0).</p>
       </div>
     </div>
   </body>
