@@ -8,7 +8,7 @@ ND {{ info.nodes }}, VT {{ info.edges }}, DC {{ (info.degree_centralization * 10
       <th>ID</th>
       <th>SCELTE</th>
       <th>IC</th>
-      <th>EC</th>
+      <th>PR</th>
       <th>BC</th>
       <th>CC</th>
       <th>NI</th>
@@ -18,7 +18,7 @@ ND {{ info.nodes }}, VT {{ info.edges }}, DC {{ (info.degree_centralization * 10
         <td>{{ k }}</td>
         <td>{{ data[k].lns }}</td>
         <td>{{ data[k].ic | int }}</td>
-        <td>{{ data[k].ec | int }}</td>
+        <td>{{ data[k].pr | int }}</td>
         <td>{{ data[k].bc | int }}</td>
         <td>{{ data[k].cc | int }}</td>
         <td>{{ data[k].ni }}</td>
@@ -96,6 +96,32 @@ ND {{ info.nodes }}, VT {{ info.edges }}, DC {{ (info.degree_centralization * 10
         text-align: center;
       }
 
+      .logo {
+        display: flex;
+        align-items: center;
+      }
+
+      .logo > div {
+        font-size: 2em;
+        font-weight: bold;
+      }
+
+      .logo-letter {
+        padding: 10px;
+        border-radius: 4px;
+        margin-right: 4px;
+      }
+
+      .letter-A {
+        background-color: #0000FF;
+        color: #fff;
+      }
+
+      .letter-B {
+        background-color: #FF0000;
+        color: #fff;
+      }
+
       .intro h1 {
         font-size: 2em;
       }
@@ -162,7 +188,8 @@ ND {{ info.nodes }}, VT {{ info.edges }}, DC {{ (info.degree_centralization * 10
       }
 
       .footer {
-        margin-top: 50px;
+        position: absolute;
+        bottom: -20px;
         font-size: .8em;
         color: #555;
       }
@@ -172,11 +199,15 @@ ND {{ info.nodes }}, VT {{ info.edges }}, DC {{ (info.degree_centralization * 10
   <body>
     <div class="page">
       <div class="intro">
-        <h1><b>AB</b>-GRID</h1>
+        <div class="logo">
+          <div class="logo-letter letter-A">A</div>
+          <div class="logo-letter letter-B">B</div>
+          <div>GRID</div>
+        </div>
       </div>
       <div class="disclaimer">
         <em>
-          <b>Avvertenza</b>: questo report è stato generato automaticamente da un computer. La sua interpretazione è riservata al personale che ha svolto il corso "Dinamiche di gruppo e introduzione alla network analysis."
+          <b>Avvertenza</b>: questo report è stato generato automaticamente da un computer. La sua interpretazione è riservata al personale che ha svolto il corso "Dinamiche di gruppo e introduzione alla Network Analysis."
         </em>
       </div>
       <div class="report-info">
@@ -196,10 +227,10 @@ ND {{ info.nodes }}, VT {{ info.edges }}, DC {{ (info.degree_centralization * 10
         </tr>
       </table>
       <div class="legend">
-        <b>ND</b> = Number of nodes, <b>VT</b> = Number of Vertices, <b>DC</b> = Degree Centralization, <b>CL</b> = Global Clustering<br/><b>RP</b> = Reciprocity, <b>ID</b> = In-Degree Centrality (rango), <b>EC</b> = Eigenvalue Centrality (rango)<br /><b>BC</b> = Betweenness Centrality (rango), <b>CC</b> = Closenness Centrality (rango), <b>NI</b> = No In-Degree.
+        <b>ND</b> = Number of nodes, <b>VT</b> = Number of Vertices, <b>DC</b> = Degree Centralization, <b>CL</b> = Global Clustering<br/><b>RP</b> = Reciprocity, <b>IC</b> = In-Degree Centrality (rango), <b>PR</b> = PageRank Centrality (rango)<br /><b>BC</b> = Betweenness Centrality (rango), <b>CC</b> = Closenness Centrality (rango), <b>NI</b> = No In-Degree.
       </div>
       <div class="footer">
-        <p>Elaborazione concettuale e grafica: Ten. Col CSArs Pierpaolo CALANNA, PhD - Cap CSArs Gaetano BUONAIUTO</p>
+        <p><b>Ten. Col CSArs Pierpaolo CALANNA, PhD - Cap CSArs Gaetano BUONAIUTO</b>. L'impaginazione del presente report, la scelta e la personalizzazione dei grafici, nonché la scelta degli indici quantitativi sono protetti da licenza Creative Commonos: Attribuzione - Non opere derivate 4.0 Internazionale (https://creativecommons.org/licenses/by-nd/4.0).</p>
       </div>
     </div>
   </body>
