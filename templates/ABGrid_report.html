@@ -13,6 +13,7 @@
       <th>PR</th>
       <th>BC</th>
       <th>CC</th>
+      <th>OR</th>
       <th>NI</th>
     </tr>
     {% for k in data.keys() %}
@@ -23,6 +24,7 @@
         <td>{{ data[k].pr | int }}</td>
         <td>{{ data[k].bc | int }}</td>
         <td>{{ data[k].cc | int }}</td>
+        <td>{{ '%0.2f'|format(data[k].or | round(2)) }}</td>
         <td>{{ data[k].ni }}</td>
       </tr>
     {% endfor %}
@@ -230,10 +232,10 @@
         </tr>
       </table>
       <div class="legend">
-        <b>ND</b> = Number of Nodes, <b>ED</b> = Number of Edges, <b>DC</b> = Degree Centralization, <b>CL</b> = Global Clustering<br/><b>RP</b> = Reciprocity, <b>IC</b> = In-Degree Centrality (rango), <b>PR</b> = PageRank Centrality (rango)<br /><b>BC</b> = Betweenness Centrality (rango), <b>CC</b> = Closenness Centrality (rango), <b>NI</b> = No In-Degree.
+        <b>ND</b> = Number of Nodes, <b>ED</b> = Number of Edges, <b>DC</b> = Degree Centralization, <b>CL</b> = Global Clustering<br/><b>RP</b> = Reciprocity, <b>IC</b> = In-Degree Centrality (rango), <b>PR</b> = PageRank Centrality (rango)<br /><b>BC</b> = Betweenness Centrality (rango), <b>CC</b> = Closenness Centrality (rango)<br /><b>OR</b> = Other Nodes Reachability (%), <b>NI</b> = No In-Degree.
       </div>
       <div class="footer">
-        <p><b>Autori</b>: Dr. Pierpaolo CALANNA, PhD, Dr. Gaetano BUONAIUTO (2021-{{ year }}), <b>Licenza d'uso</b>: l'impaginazione del presente report, la scelta e la personalizzazione dei grafici, nonché la scelta degli indici quantitativi sono regolati da licenza Creative Commons: Attribuzione - Non opere derivate 4.0 Internazionale (https://creativecommons.org/licenses/by-nd/4.0).</p>
+        <p><b>Autori</b>: Dr. Pierpaolo CALANNA, PhD, Dr. Gaetano BUONAIUTO (2021-{{ year }}), <b>Licenza d'uso</b>: l'impaginazione del presente report, la personalizzazione dei grafici, nonché la scelta degli indici quantitativi sono regolati da licenza Creative Commons: Attribuzione - Non opere derivate 4.0 Internazionale (https://creativecommons.org/licenses/by-nd/4.0).</p>
       </div>
     </div>
   </body>
