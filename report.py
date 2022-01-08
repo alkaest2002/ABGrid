@@ -7,7 +7,7 @@
 
 # ## 1. IMPORTS
 
-# In[22]:
+# In[1]:
 
 
 # imports
@@ -16,9 +16,9 @@ import os
 import io
 import re
 import json
+import datetime
 import yaml
 import cerberus
-import datetime
 import numpy as np
 import pandas as pd
 import networkx as nx
@@ -40,7 +40,7 @@ matplotlib.use("Agg")
 
 # ## 2. CONSTANTS
 
-# In[14]:
+# In[2]:
 
 
 # folder path constants
@@ -85,7 +85,7 @@ GROUP_YAML_SCHEMA = {
 
 # ### 3.1 Functions related to IO
 
-# In[15]:
+# In[3]:
 
 
 def unpack_edges(data):
@@ -144,12 +144,14 @@ def load_data(conf_file, conf_yaml_schema, group_file, group_yaml_schema):
         else:
             return (None, validator.errors)
     # catch eroors
+    except FileNotFoundError:
+        return(None,"Cannot locate files")
     except yaml.YAMLError as e:
-        return (None, "invalid yaml file")
+        return (None, "Yaml files could not be parsed")
     except cerberus.DocumentError as e:
-        return (None, "invalid document to be validated")
+        return (None, "Document was loaded but cannot be evaluated")
     except cerberus.SchemaError as e:
-        return (None, "invalid yaml validation schema")
+        return (None, "Invalid yaml validation schema")
 
 
 def generate_report(report_data):
@@ -177,7 +179,7 @@ def generate_report(report_data):
 
 # ### 3.2 Functions related to Social Network Analysis
 
-# In[16]:
+# In[4]:
 
 
 def get_graph_data_uri(buffer):
@@ -281,23 +283,22 @@ def get_network_stats(G):
 
 # ## 4. REPORT
 
-# In[17]:
+# In[5]:
 
 
 # init jinja environment
 e = jn.Environment(loader=jn.FileSystemLoader(TEMPLATES_PATH))
 
 
-# In[30]:
+# In[6]:
 
 
 # init list
 files = []
 # from cli
 if __name__ == '__main__' and "get_ipython" not in dir():
-   if __name__ == '__main__' and "get_ipython" not in dir():
     if len(sys.argv) != 3:
-        print("insufficient params")
+        print("Parametri insufficienti")
         sys.exit()
     files = (
         sys.argv[1], 
@@ -310,23 +311,25 @@ else:
         [ f"gruppo{g}.yaml" for g in [2,3,6,8]]
     )
 
+# notify user
+print("1. Starting...")
 # unpack files
 conf, groups = files
 # loop through groups
 for group in groups:
+    # notify user
+    print("2. Loading data files...")
     # load data
     report_data, errors = load_data(conf, CONF_YAML_SCHEMA, group, GROUP_YAML_SCHEMA)
     # if data was correctly loaded
     if (report_data != None):
+        # notify user
+        print("3. Generating report(s)...")
         # generate report
         generate_report(report_data)
+        # notify user
+        print("4. Report(s) generated.")
     else:
         # notify user
         print(errors)
-
-
-# In[ ]:
-
-
-
 
