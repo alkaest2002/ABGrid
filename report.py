@@ -1,105 +1,183 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# ## IMPORTS AND UTILITY FNS
+# # GENERATE AB-GRID REPORT
 
 # Author: Dr. Pierpaolo Calanna, Phd
 
-# In[1]:
+# ## 1. IMPORTS
+
+# In[22]:
+
+
+# imports
 import sys
-if len(sys.argv) != 3:
-	print("Parametri insufficienti")
-	sys.exit()
-
-
-# define constants
 import os
 import io
 import re
 import json
 import yaml
+import cerberus
 import datetime
-from pathlib import Path
-from base64 import b64encode
 import numpy as np
 import pandas as pd
 import networkx as nx
 import networkx.algorithms.connectivity as nxcon
-from networkx.readwrite import json_graph
 import matplotlib
 import matplotlib.pyplot as plt
 import jinja2 as jn
+
+from pathlib import Path
+from base64 import b64encode
+from cerberus import Validator
 from weasyprint import HTML
-
-TEMPLATES_PATH = Path("./templates/")
-DATA_PATH = Path("./data/")
-REPORTS_PATH = Path("./out/reports/")
-
-CONF_FILE = DATA_PATH / sys.argv[1]
-DATA_FILE = DATA_PATH / sys.argv[2]
 
 # customize matplotlib
 font = {'size' : 8}
 matplotlib.rc('font', **font)
-
-# init jinja environment
-e = jn.Environment(loader=jn.FileSystemLoader(TEMPLATES_PATH))
+matplotlib.use("Agg")
 
 
-# In[10]:
+# ## 2. CONSTANTS
+
+# In[14]:
 
 
-# function to unpack edges
-def unpack(data):
+# folder path constants
+TEMPLATES_PATH = Path("./templates/")
+DATA_PATH = Path("./data/")
+REPORTS_PATH = Path("./out/reports/")
+
+# conf yaml validator schema
+CONF_YAML_SCHEMA = {
+    "titolo": { "type": "string" },
+    "numero_gruppi": { "type": "integer", "min": 1, "max": 20 },
+    "numero_partecipanti_per_gruppo": { "type": "integer", "min": 3, "max": 26 },
+    "consegna": { "type": "string" },
+    "domandaA":{ "type": "string" },
+    "domandaA_scelte": { "type": "string" },
+    "domandaB": { "type": "string" },
+    "domandaB_scelte": { "type": "string" },
+}
+
+# group yaml validator schema
+GROUP_YAML_SCHEMA = {
+    "scelteA": {
+        "type": "list",
+        "schema":{
+            "type": "dict",
+            "keysrules": {"type": "string", "regex": "^[A-Z]{1,1}$"},
+            "valuesrules": {"type": "string", "regex": "^[A-Z,]*,[A-Z]$"}
+        }
+    },
+    "scelteB": {
+        "type": "list",
+        "schema":{
+            "type": "dict",
+            "keysrules": {"type": "string", "regex": "^[A-Z]{1,1}$"},
+            "valuesrules": {"type": "string", "regex": "^[A-Z,]*,[A-Z]$"}
+        }
+    }
+}
+
+
+# ## 3. FUNCTIONS
+
+# ### 3.1 Functions related to IO
+
+# In[15]:
+
+
+def unpack_edges(data):
+    # init edges list
     unpacked_edges = [];
+    # loop through rows in data
     for row in data:
+        # loop through nodes and edges
         for node, edges in row.items():
+            # split edges
             for edge in edges.split(","):
+                # append edge to edges list
                 unpacked_edges.append((node, edge))
+    # return edges list
     return unpacked_edges
 
 
-# ## DATA
+def load_data(conf_file, conf_yaml_schema, group_file, group_yaml_schema):
+    # init validator
+    validator = Validator(required_all=True)
+    # try to load data
+    try:
+        # read conf data
+        with open(DATA_PATH / conf_file, 'r') as file:
+            conf_yaml_data = yaml.safe_load(file)
+        # validate conf data
+        if validator.validate(conf_yaml_data, conf_yaml_schema):
+            # read group data
+            with open(DATA_PATH / group_file, 'r') as file:
+                group_yaml_data = yaml.safe_load(file)
+            # validate data
+            if validator.validate(group_yaml_data, group_yaml_schema):
+                # update group data
+                group_id = "non definito"
+                if match := re.search(f"^.+[{os.path.sep}](.+)\..+$", file.name, re.IGNORECASE):
+                    group_id = match.group(1)
+                group_yaml_data["gruppo"] = group_id
+                group_yaml_data["scelteA"] = unpack_edges(group_yaml_data["scelteA"])
+                group_yaml_data["scelteB"] = unpack_edges(group_yaml_data["scelteB"])
+                # merge data
+                report_yaml_data =  conf_yaml_data | group_yaml_data
+                # init report data
+                report_data = dict()
+                # update report data
+                report_data["assessment_info"] = report_yaml_data["titolo"]
+                report_data["group_id"] = report_yaml_data["gruppo"]
+                report_data["ga_question"] = report_yaml_data["domandaA"]
+                report_data["gb_question"] = report_yaml_data["domandaB"]
+                report_data["edges_a"] = report_yaml_data["scelteA"]
+                report_data["edges_b"] = report_yaml_data["scelteB"]
+                report_data["year"] = datetime.datetime.utcnow().year
+                # report data
+                return (report_data, None)
+            else:
+                return (None, validator.errors)
+        else:
+            return (None, validator.errors)
+    # catch eroors
+    except yaml.YAMLError as e:
+        return (None, "invalid yaml file")
+    except cerberus.DocumentError as e:
+        return (None, "invalid document to be validated")
+    except cerberus.SchemaError as e:
+        return (None, "invalid yaml validation schema")
 
-# In[4]:
+
+def generate_report(report_data):
+    # create DiGraph A
+    Ga = nx.DiGraph()
+    Ga.add_edges_from(report_data["edges_a"])
+    Ga_info, Ga_data = get_network_stats(Ga)
+    report_data["ga_info"] = Ga_info
+    report_data["ga_data"] = Ga_data.to_dict("index")
+    report_data["ga_graph"] = get_network_graph(Ga, "A")
+    # create DiGraph B
+    Gb = nx.DiGraph()
+    Gb.add_edges_from(report_data["edges_b"])
+    Gb_info, Gb_data = get_network_stats(Gb)
+    report_data["gb_info"] = Gb_info
+    report_data["gb_data"] = Gb_data.to_dict("index")
+    report_data["gb_graph"] = get_network_graph(Gb, "B")
+    # get report template
+    tpl = e.get_template("ABGrid_report.html")
+    # render report
+    rendered_tpl = tpl.render(report_data);
+    # save report as pdf
+    HTML(string=rendered_tpl).write_pdf(REPORTS_PATH / f"ABGrid_report_{report_data['group_id']}.pdf")
 
 
-# read conf data
-with open(CONF_FILE, 'r') as file:
-    conf_yaml_data = yaml.safe_load(file)
-    
-# read group data
-with open(DATA_FILE, 'r') as file:
-    group_yaml_data = yaml.safe_load(file)
-    group_id = "non definito"
-    if match := re.search(f"^.+[{os.path.sep}](.+)\..+$", file.name, re.IGNORECASE):
-        group_id = match.group(1)
-    group_yaml_data["gruppo"] = group_id
-    group_yaml_data["scelteA"] = unpack(group_yaml_data["scelteA"])
-    group_yaml_data["scelteB"] = unpack(group_yaml_data["scelteB"])
+# ### 3.2 Functions related to Social Network Analysis
 
-# merge data
-yaml_data = conf_yaml_data | group_yaml_data
-
-
-# ## REPORT
-
-# In[6]:
-
-
-# init report data
-report_data = dict()
-
-# update report data
-report_data["assessment_info"] = yaml_data["titolo"]
-report_data["group_id"] = yaml_data["gruppo"]
-report_data["ga_question"] = yaml_data["domandaA"]
-report_data["gb_question"] = yaml_data["domandaB"]
-report_data["edges_a"] = yaml_data["scelteA"]
-report_data["edges_b"] = yaml_data["scelteB"]
-
-
-# In[7]:
+# In[16]:
 
 
 def get_graph_data_uri(buffer):
@@ -107,10 +185,6 @@ def get_graph_data_uri(buffer):
     svg = b64encode(buffer.getvalue()).decode()
     # return svg data uri
     return f"data:image/svg+xml;base64,{svg}"    
-
-
-# In[8]:
-
 
 def get_network_graph(G, graphType = "A"):
     # set conversion inch -> cm
@@ -123,7 +197,6 @@ def get_network_graph(G, graphType = "A"):
     fig, ax = plt.subplots(constrained_layout=True, figsize=(9*cm,9*cm))
     # hide axis
     ax.axis('off')
-    
     #-------------------------------------------------------------------------------------------
     # draw network
     # ------------------------------------------------------------------------------------------
@@ -144,27 +217,12 @@ def get_network_graph(G, graphType = "A"):
      # draw labels
     nx.draw_networkx_labels(G, loc, font_color="#FFF", font_weight=True, font_size=14, ax=ax)
     # ------------------------------------------------------------------------------------------
-    
     # save figure to buffer
     fig.savefig(buffer, format="svg", bbox_inches='tight', transparent=True, pad_inches=0.05)
+    # close figure
+    plt.close(fig)
     # return svg data uri (from buffer)
     return get_graph_data_uri(buffer)
-
-def get_network_diameter(G):
-    # convert network to undirected
-    Gu = G.to_undirected()
-    # if network is connected
-    if nx.is_connected(Gu):
-        # return network diameter
-        return nx.diameter(Gu)
-    # otherwise
-    else:
-        # get largest connected component
-        Gcc_max = sorted(nx.connected_components(Gu), key=len, reverse=True)[0]
-        # get largest connected component subgraph
-        Gcc_max_graph = Gu.subgraph(Gcc_max)
-        # return diameter of largest connected component
-        return nx.diamter(Gcc_max_graph)
 
 def get_degree_centralization(G):
     # to undirected
@@ -183,9 +241,11 @@ def get_network_stats(G):
     links = dict()
     # init no indegree dict
     no_indegree = dict()
-    # get nodes' neighbors
+    # loop through nodes
     for node in G.nodes():
+        # add x to nodes that do not have indegree, otherwise empty string
         no_indegree[node]="x" if G.in_degree(node) == 0 else ""
+        # add joined neighbors
         links[node]=(", ".join(G.neighbors(node)))
     # build stats dataframe
     df = pd.concat([
@@ -200,12 +260,13 @@ def get_network_stats(G):
         ),
         pd.Series(no_indegree, name="ni")
     ], axis=1)
-    # add name to tats dataframe index
+    # add name to stats dataframe index
     df.index.name = "letter"
     # sort index
     df = df.sort_index()
     # return stats tuple
     return (
+        # macro-level stats
         dict(
             nodes=G.number_of_nodes(), 
             edges=G.number_of_edges(),
@@ -213,37 +274,59 @@ def get_network_stats(G):
             clustering_coefficient=nx.average_clustering(G),
             reciprocity=nx.reciprocity(G)
         ),
+        # micro-level stats
         df
     )
 
 
-# In[9]:
+# ## 4. REPORT
+
+# In[17]:
 
 
-# create DiGraph A
-Ga = nx.DiGraph()
-Ga.add_edges_from(report_data["edges_a"])
-Ga_info, Ga_data = get_network_stats(Ga)
-report_data["ga_info"] = Ga_info
-report_data["ga_data"] = Ga_data.to_dict("index")
-report_data["ga_graph"] = get_network_graph(Ga, "A")
+# init jinja environment
+e = jn.Environment(loader=jn.FileSystemLoader(TEMPLATES_PATH))
 
-# create DiGraph B
-Gb = nx.DiGraph()
-Gb.add_edges_from(report_data["edges_b"])
-Gb_info, Gb_data = get_network_stats(Gb)
-report_data["gb_info"] = Gb_info
-report_data["gb_data"] = Gb_data.to_dict("index")
-report_data["gb_graph"] = get_network_graph(Gb, "B")
-report_data["year"] = datetime.datetime.utcnow().year
 
-# get report template
-tpl = e.get_template("ABGrid_report.html")
+# In[30]:
 
-# render report
-rendered_tpl = tpl.render(report_data);
 
-# save report as pdf
-HTML(string=rendered_tpl).write_pdf( REPORTS_PATH / f"ABGrid_report_{report_data['group_id']}.pdf")
+# init list
+files = []
+# from cli
+if __name__ == '__main__' and "get_ipython" not in dir():
+   if __name__ == '__main__' and "get_ipython" not in dir():
+    if len(sys.argv) != 3:
+        print("insufficient params")
+        sys.exit()
+    files = (
+        sys.argv[1], 
+        [sys.argv[2]]
+    )
+# from jupyter
+else:
+    files = (
+        "conf.yaml",
+        [ f"gruppo{g}.yaml" for g in [2,3,6,8]]
+    )
+
+# unpack files
+conf, groups = files
+# loop through groups
+for group in groups:
+    # load data
+    report_data, errors = load_data(conf, CONF_YAML_SCHEMA, group, GROUP_YAML_SCHEMA)
+    # if data was correctly loaded
+    if (report_data != None):
+        # generate report
+        generate_report(report_data)
+    else:
+        # notify user
+        print(errors)
+
+
+# In[ ]:
+
+
 
 
