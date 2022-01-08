@@ -40,13 +40,14 @@ matplotlib.use("Agg")
 
 # ## 2. CONSTANTS
 
-# In[11]:
+# In[2]:
 
 
 # folder path constants
 TEMPLATES_PATH = Path("./templates/")
 DATA_PATH = Path("./data/")
 REPORTS_PATH = Path("./out/reports/")
+SHEETS_PATH = Path("./out/sheets/")
 
 # conf yaml validator schema
 CONF_YAML_SCHEMA = {
@@ -83,9 +84,59 @@ GROUP_YAML_SCHEMA = {
 
 # ## 3. FUNCTIONS
 
-# ### 3.1 Functions related to IO
+# ### 3.1 Functions relate to sheets
 
 # In[3]:
+
+
+def load_sheet_data(conf_file, conf_yaml_schema):
+    # init validator
+    validator = Validator(required_all=True)
+    # try to load data
+    try:
+        # read yaml data
+        with open(DATA_PATH / conf_file, 'r') as file:
+            conf_yaml_data = yaml.safe_load(file)
+        # if conf data validates
+        if validator.validate(conf_yaml_data, conf_yaml_schema):
+            # return data
+            return (conf_yaml_data, None)
+        # on validation error
+        else:
+            # return None as data and errors
+            return (None, validator.errors)
+    # catch exceptions
+    except FileNotFoundError:
+        return(None,"Cannot locate files")
+    except yaml.YAMLError as e:
+        return (None, "Yaml files could not be parsed")
+        
+
+def generate_sheets(conf_data):
+    # init dict
+    sheet_data = dict()
+    # compute likert
+    likert = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[:conf_data["numero_partecipanti_per_gruppo"]]
+    # update sheet_data
+    sheet_data["title"] = conf_data["titolo"]
+    sheet_data["groups"] = list(range(1, conf_data["numero_gruppi"] +1))
+    sheet_data["likert"] = likert
+    sheet_data["explanation"] = conf_data["consegna"]
+    sheet_data["ga_question"] = conf_data["domandaA"]
+    sheet_data["ga_question_hint"] = conf_data["domandaA_scelte"]
+    sheet_data["gb_question"] = conf_data["domandaB"]
+    sheet_data["gb_question_hint"] = conf_data["domandaB_scelte"]
+    # get report template
+    tpl = e.get_template("ABGrid_sheet.html")
+    # render report
+    rendered_tpl = tpl.render(sheet_data);
+    # save report as pdf
+    HTML(string=rendered_tpl).write_pdf(SHEETS_PATH / "ABGrid_sheets.pdf")
+
+
+# ### 3.2 Functions related to report IO
+
+# In[4]:
 
 
 def unpack_edges(data):
@@ -103,7 +154,7 @@ def unpack_edges(data):
     return unpacked_edges
 
 
-def load_data(conf_file, conf_yaml_schema, group_file, group_yaml_schema):
+def load_report_data(conf_file, conf_yaml_schema, group_file, group_yaml_schema):
     # init validator
     validator = Validator(required_all=True)
     # try to load data
@@ -116,7 +167,7 @@ def load_data(conf_file, conf_yaml_schema, group_file, group_yaml_schema):
             # read group data
             with open(DATA_PATH / group_file, 'r') as file:
                 group_yaml_data = yaml.safe_load(file)
-            # validate data
+            # if conf data validates
             if validator.validate(group_yaml_data, group_yaml_schema):
                 # update group data
                 group_id = "non definito"
@@ -139,11 +190,13 @@ def load_data(conf_file, conf_yaml_schema, group_file, group_yaml_schema):
                 report_data["year"] = datetime.datetime.utcnow().year
                 # report data
                 return (report_data, None)
+            # on validation error
             else:
+                # return None and errors
                 return (None, validator.errors)
         else:
             return (None, validator.errors)
-    # catch eroors
+    # catch errors
     except FileNotFoundError:
         return(None,"Cannot locate files")
     except yaml.YAMLError as e:
@@ -154,7 +207,7 @@ def load_data(conf_file, conf_yaml_schema, group_file, group_yaml_schema):
         return (None, "Invalid yaml validation schema")
 
 
-def generate_report(report_data):
+def generate_reports(report_data):
     # create DiGraph A
     Ga = nx.DiGraph()
     Ga.add_edges_from(report_data["edges_a"])
@@ -177,9 +230,9 @@ def generate_report(report_data):
     HTML(string=rendered_tpl).write_pdf(REPORTS_PATH / f"ABGrid_report_{report_data['group_id']}.pdf")
 
 
-# ### 3.2 Functions related to Social Network Analysis
+# ### 3.3 Functions related to Social Network Analysis
 
-# In[4]:
+# In[5]:
 
 
 def get_graph_data_uri(buffer):
@@ -281,59 +334,94 @@ def get_network_stats(G):
     )
 
 
-# ## 4. REPORT
+# ## 4. GENERATE
 
-# In[5]:
+# In[6]:
 
 
 # init jinja environment
 e = jn.Environment(loader=jn.FileSystemLoader(TEMPLATES_PATH))
 
 
-# In[6]:
+# In[7]:
 
 
 # init list
 files = []
 # from cli
 if __name__ == '__main__' and "get_ipython" not in dir():
-    if len(sys.argv) != 3:
-        print("Numero non corretto di parametri")
+    # one parameter (will generate sheets)
+    if len(sys.argv) == 2:
+        files = (sys.argv[1], None)
+    # two parameters (will generate reports)
+    elif len(sys.argv) == 3:
+        # set files
+        files = (sys.argv[1], [sys.argv[2]])
+    # error
+    else:
+        print("Invalid number of parameters")
         sys.exit()
-    # set files
-    files = (
-        sys.argv[1], 
-        [sys.argv[2]]
-    )
 # from jupyter
 else:
     # export jupyter notebook to python code
-    get_ipython().system('jupyter nbconvert ABGrid_report.ipynb --to python --output "report.py"')
+    get_ipython().system('jupyter nbconvert abgrid.ipynb --to python --output "abgrid.py"')
     # set files
     files = (
         "conf.yaml",
         [ f"gruppo{g}.yaml" for g in [2,3,6,8] ]
-    )
+    );
+
+
+# In[8]:
+
 
 # notify user
 print("1. Starting...")
 # unpack files
-conf, groups = files
-# loop through groups
-for group in groups:
+configuration_file, group_files = files
+# generate sheets
+if group_files == None:
     # notify user
-    print(f"2. Loading data files ({group})...")
+    print(f"2. Loading data file ({configuration_file})...")
     # load data
-    report_data, errors = load_data(conf, CONF_YAML_SCHEMA, group, GROUP_YAML_SCHEMA)
+    sheet_data, errors = load_sheet_data(configuration_file, CONF_YAML_SCHEMA)
     # if data was correctly loaded
-    if (report_data != None):
+    if (sheet_data != None):
         # notify user
-        print("3. Generating report(s)...")
+        print("3. Generating sheet(s)...")
         # generate report
-        generate_report(report_data)
+        generate_sheets(sheet_data)
         # notify user
-        print("4. Report(s) generated.")
+        print("4. Sheet(s) generated.")
     else:
         # notify user
         print(errors)
+# generate reports
+else:
+    # loop through groups
+    for group_file in group_files:
+        # notify user
+        print(f"2. Loading data files ({group_file})...")
+        # load data
+        report_data, errors = load_report_data(
+            configuration_file, CONF_YAML_SCHEMA, 
+            group_file, GROUP_YAML_SCHEMA
+        )
+        # if data was correctly loaded
+        if (report_data != None):
+            # notify user
+            print("3. Generating report(s)...")
+            # generate reports
+            generate_reports(report_data)
+            # notify user
+            print("4. Report(s) generated.")
+        else:
+            # notify user
+            print(errors)
+
+
+# In[ ]:
+
+
+
 
