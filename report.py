@@ -318,7 +318,7 @@ conf, groups = files
 # loop through groups
 for group in groups:
     # notify user
-    print("2. Loading data files...")
+    print(f"2. Loading data files ({group})...")
     # load data
     report_data, errors = load_data(conf, CONF_YAML_SCHEMA, group, GROUP_YAML_SCHEMA)
     # if data was correctly loaded
