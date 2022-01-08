@@ -7,7 +7,7 @@
 
 # ## 1. IMPORTS
 
-# In[1]:
+# In[16]:
 
 
 # imports
@@ -40,7 +40,7 @@ matplotlib.use("Agg")
 
 # ## 2. CONSTANTS
 
-# In[2]:
+# In[17]:
 
 
 # folder path constants
@@ -85,7 +85,7 @@ GROUP_YAML_SCHEMA = {
 
 # ### 3.1 Functions related to IO
 
-# In[3]:
+# In[18]:
 
 
 def unpack_edges(data):
@@ -179,7 +179,7 @@ def generate_report(report_data):
 
 # ### 3.2 Functions related to Social Network Analysis
 
-# In[4]:
+# In[19]:
 
 
 def get_graph_data_uri(buffer):
@@ -283,14 +283,14 @@ def get_network_stats(G):
 
 # ## 4. REPORT
 
-# In[5]:
+# In[20]:
 
 
 # init jinja environment
 e = jn.Environment(loader=jn.FileSystemLoader(TEMPLATES_PATH))
 
 
-# In[6]:
+# In[21]:
 
 
 # init list
@@ -306,6 +306,8 @@ if __name__ == '__main__' and "get_ipython" not in dir():
     )
 # from jupyter
 else:
+    # convert file
+    get_ipython().system('jupyter nbconvert ABGrid_report.ipynb --to python "report.py"')
     files = (
         "conf.yaml",
         [ f"gruppo{g}.yaml" for g in [2,3,6,8]]
