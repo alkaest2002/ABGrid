@@ -344,7 +344,7 @@ def get_network_stats(G):
 e = jn.Environment(loader=jn.FileSystemLoader(TEMPLATES_PATH))
 
 
-# In[7]:
+# In[14]:
 
 
 # init list
@@ -355,12 +355,13 @@ if __name__ == '__main__' and "get_ipython" not in dir():
     my_parser = argparse.ArgumentParser(description="generate ABGrid sheets and/or reports")
     # add first argument
     my_parser.add_argument('conf', metavar='conf', type=str, help='the configuration file name')
-    # add second argument
+    # add second argument (optional)
     my_parser.add_argument('-group', metavar='group', type=str, help='the group file name')
-    # parse args
+    # parse arguments
     args = my_parser.parse_args()
     # set files
     files = (args.conf, [args.group])
+    print(files)
 # from jupyter
 else:
     # export jupyter notebook to python code
@@ -418,10 +419,4 @@ else:
         else:
             # notify user
             print(errors)
-
-
-# In[ ]:
-
-
-
 
