@@ -15,6 +15,7 @@ import sys
 import os
 import io
 import re
+import argparse
 import json
 import datetime
 import yaml
@@ -350,17 +351,16 @@ e = jn.Environment(loader=jn.FileSystemLoader(TEMPLATES_PATH))
 files = []
 # from cli
 if __name__ == '__main__' and "get_ipython" not in dir():
-    # one parameter (will generate sheets)
-    if len(sys.argv) == 2:
-        files = (sys.argv[1], None)
-    # two parameters (will generate reports)
-    elif len(sys.argv) == 3:
-        # set files
-        files = (sys.argv[1], [sys.argv[2]])
-    # error
-    else:
-        print("Invalid number of parameters")
-        sys.exit()
+    # init arg parser
+    my_parser = argparse.ArgumentParser(description="generate ABGrid sheets and/or reports")
+    # add first argument
+    my_parser.add_argument('conf', metavar='conf', type=str, help='the configuration file name')
+    # add second argument
+    my_parser.add_argument('-group', metavar='group', type=str, help='the group file name')
+    # parse args
+    args = my_parser.parse_args()
+    # set files
+    files = (args.conf, [args.group])
 # from jupyter
 else:
     # export jupyter notebook to python code
@@ -380,7 +380,7 @@ print("1. Starting...")
 # unpack files
 configuration_file, group_files = files
 # generate sheets
-if group_files == None:
+if group_files == [None]:
     # notify user
     print(f"2. Loading data file ({configuration_file})...")
     # load data
