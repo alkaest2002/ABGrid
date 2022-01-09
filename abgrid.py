@@ -7,7 +7,7 @@
 
 # ## 1. IMPORTS
 
-# In[1]:
+# In[9]:
 
 
 # imports
@@ -41,7 +41,7 @@ matplotlib.use("Agg")
 
 # ## 2. CONSTANTS
 
-# In[2]:
+# In[10]:
 
 
 # folder path constants
@@ -64,6 +64,11 @@ CONF_YAML_SCHEMA = {
 
 # group yaml validator schema
 GROUP_YAML_SCHEMA = {
+    "IDGruppo": {
+        "type": "integer",
+        "min": 1,
+        "max": 20
+    },
     "scelteA": {
         "type": "list",
         "schema":{
@@ -85,23 +90,22 @@ GROUP_YAML_SCHEMA = {
 
 # ## 3. FUNCTIONS
 
-# ### 3.1 Functions relate to sheets
+# ### 3.1 Function related to DATA
 
-# In[3]:
+# In[11]:
 
 
-def load_sheet_data(conf_file, conf_yaml_schema):
-    # init validator
-    validator = Validator(required_all=True)
+def load_yaml_file(yaml_file, yaml_schema, validator):
     # try to load data
     try:
-        # read yaml data
-        with open(DATA_PATH / conf_file, 'r') as file:
-            conf_yaml_data = yaml.safe_load(file)
-        # if conf data validates
-        if validator.validate(conf_yaml_data, conf_yaml_schema):
-            # return data
-            return (conf_yaml_data, None)
+        # open yaml file
+        with open(yaml_file, 'r') as file:
+            # parse yaml data
+            yaml_data = yaml.safe_load(file)
+        # if yaml data validates
+        if validator.validate(yaml_data, yaml_schema):
+            # return yaml data and None as errors
+            return (yaml_data, None)
         # on validation error
         else:
             # return None as data and errors
@@ -111,34 +115,37 @@ def load_sheet_data(conf_file, conf_yaml_schema):
         return(None,"Cannot locate files")
     except yaml.YAMLError as e:
         return (None, "Yaml files could not be parsed")
-        
-
-def generate_sheets(conf_data):
-    # init dict
-    sheet_data = dict()
-    # compute likert
-    likert = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[:conf_data["numero_partecipanti_per_gruppo"]]
-    # update sheet_data
-    sheet_data["title"] = conf_data["titolo"]
-    sheet_data["groups"] = list(range(1, conf_data["numero_gruppi"] +1))
-    sheet_data["likert"] = likert
-    sheet_data["explanation"] = conf_data["consegna"]
-    sheet_data["ga_question"] = conf_data["domandaA"]
-    sheet_data["ga_question_hint"] = conf_data["domandaA_scelte"]
-    sheet_data["gb_question"] = conf_data["domandaB"]
-    sheet_data["gb_question_hint"] = conf_data["domandaB_scelte"]
-    # get report template
-    tpl = e.get_template("ABGrid_sheet.html")
-    # render report
-    rendered_tpl = tpl.render(sheet_data);
-    # save report as pdf
-    HTML(string=rendered_tpl).write_pdf(SHEETS_PATH / "ABGrid_sheets.pdf")
-
-
-# ### 3.2 Functions related to report IO
-
-# In[4]:
-
+    except cerberus.DocumentError as e:
+        return (None, "Document was loaded but cannot be evaluated")
+    except cerberus.SchemaError as e:
+        return (None, "Invalid yaml validation schema")
+    
+def get_sheets_data(conf_file, conf_yaml_schema):
+    # init validator
+    validator = Validator(required_all=True)
+    # load sheet data
+    sheets_yaml_data, validation_errors = load_yaml_file(DATA_PATH / conf_file, conf_yaml_schema, validator)
+    # if configuration data was correctly loaded
+    if sheets_yaml_data != None:
+        # init dict
+        sheets_data = dict()
+        # compute likert
+        likert = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[:sheets_yaml_data["numero_partecipanti_per_gruppo"]]
+        # update sheet_data
+        sheets_data["title"] = sheets_yaml_data["titolo"]
+        sheets_data["groups"] = list(range(1, sheets_yaml_data["numero_gruppi"] +1))
+        sheets_data["likert"] = likert
+        sheets_data["explanation"] = sheets_yaml_data["consegna"]
+        sheets_data["ga_question"] = sheets_yaml_data["domandaA"]
+        sheets_data["ga_question_hint"] = sheets_yaml_data["domandaA_scelte"]
+        sheets_data["gb_question"] = sheets_yaml_data["domandaB"]
+        sheets_data["gb_question_hint"] = sheets_yaml_data["domandaB_scelte"]
+        # return sheet data
+        return (sheets_data, None)
+    # on validation errors
+    else:
+        # return None and validation errors
+        return (None, validation_errors)
 
 def unpack_edges(data):
     # init edges list
@@ -155,92 +162,55 @@ def unpack_edges(data):
     return unpacked_edges
 
 
-def load_report_data(conf_file, conf_yaml_schema, group_file, group_yaml_schema):
+def get_reports_data(conf_file, conf_yaml_schema, group_file, group_yaml_schema):
     # init validator
     validator = Validator(required_all=True)
-    # try to load data
-    try:
-        # read conf data
-        with open(DATA_PATH / conf_file, 'r') as file:
-            conf_yaml_data = yaml.safe_load(file)
-        # validate conf data
-        if validator.validate(conf_yaml_data, conf_yaml_schema):
-            # read group data
-            with open(DATA_PATH / group_file, 'r') as file:
-                group_yaml_data = yaml.safe_load(file)
-            # if conf data validates
-            if validator.validate(group_yaml_data, group_yaml_schema):
-                # update group data
-                group_id = "non definito"
-                if match := re.search(f"^.+[{os.path.sep}](.+)\..+$", file.name, re.IGNORECASE):
-                    group_id = match.group(1)
-                group_yaml_data["gruppo"] = group_id
-                group_yaml_data["scelteA"] = unpack_edges(group_yaml_data["scelteA"])
-                group_yaml_data["scelteB"] = unpack_edges(group_yaml_data["scelteB"])
-                # merge data
-                report_yaml_data =  conf_yaml_data | group_yaml_data
-                # init report data
-                report_data = dict()
-                # update report data
-                report_data["assessment_info"] = report_yaml_data["titolo"]
-                report_data["group_id"] = report_yaml_data["gruppo"]
-                report_data["ga_question"] = report_yaml_data["domandaA"]
-                report_data["gb_question"] = report_yaml_data["domandaB"]
-                report_data["edges_a"] = report_yaml_data["scelteA"]
-                report_data["edges_b"] = report_yaml_data["scelteB"]
-                report_data["year"] = datetime.datetime.utcnow().year
-                # report data
-                return (report_data, None)
-            # on validation error
-            else:
-                # return None and errors
-                return (None, validator.errors)
+    # try to load configuration yaml file
+    conf_yaml_data, validation_errors = load_yaml_file(DATA_PATH / conf_file, conf_yaml_schema, validator)
+    # if configuration data was correctly loaded
+    if conf_yaml_data != None:
+        # try to load group data
+        group_yaml_data, validation_errors =            load_yaml_file(DATA_PATH / group_file, group_yaml_schema, validator)
+        # if group data was correctly loaded
+        if group_yaml_data != None:
+            group_yaml_data["gruppo"] = group_yaml_data["IDGruppo"]
+            group_yaml_data["scelteA"] = unpack_edges(group_yaml_data["scelteA"])
+            group_yaml_data["scelteB"] = unpack_edges(group_yaml_data["scelteB"])
+            # merge data
+            report_yaml_data =  conf_yaml_data | group_yaml_data
+            # init report data
+            reports_data = dict()
+            # update report data
+            reports_data["assessment_info"] = report_yaml_data["titolo"]
+            reports_data["group_id"] = report_yaml_data["gruppo"]
+            reports_data["ga_question"] = report_yaml_data["domandaA"]
+            reports_data["gb_question"] = report_yaml_data["domandaB"]
+            reports_data["edges_a"] = report_yaml_data["scelteA"]
+            reports_data["edges_b"] = report_yaml_data["scelteB"]
+            reports_data["year"] = datetime.datetime.utcnow().year
+            # return report data
+            return (reports_data, None)
+        # on validation error of group data
         else:
-            return (None, validator.errors)
-    # catch errors
-    except FileNotFoundError:
-        return(None,"Cannot locate files")
-    except yaml.YAMLError as e:
-        return (None, "Yaml files could not be parsed")
-    except cerberus.DocumentError as e:
-        return (None, "Document was loaded but cannot be evaluated")
-    except cerberus.SchemaError as e:
-        return (None, "Invalid yaml validation schema")
-
-
-def generate_reports(report_data):
-    # create DiGraph A
-    Ga = nx.DiGraph()
-    Ga.add_edges_from(report_data["edges_a"])
-    Ga_info, Ga_data = get_network_stats(Ga)
-    report_data["ga_info"] = Ga_info
-    report_data["ga_data"] = Ga_data.to_dict("index")
-    report_data["ga_graph"] = get_network_graph(Ga, "A")
-    # create DiGraph B
-    Gb = nx.DiGraph()
-    Gb.add_edges_from(report_data["edges_b"])
-    Gb_info, Gb_data = get_network_stats(Gb)
-    report_data["gb_info"] = Gb_info
-    report_data["gb_data"] = Gb_data.to_dict("index")
-    report_data["gb_graph"] = get_network_graph(Gb, "B")
-    # get report template
-    tpl = e.get_template("ABGrid_report.html")
-    # render report
-    rendered_tpl = tpl.render(report_data);
-    # save report as pdf
-    HTML(string=rendered_tpl).write_pdf(REPORTS_PATH / f"ABGrid_report_{report_data['group_id']}.pdf")
-
-
-# ### 3.3 Functions related to Social Network Analysis
-
-# In[5]:
-
-
+            # return None and validation errors
+            return (None, validation_errors)
+    # on validation error of configuration data
+    else:
+        # return None and validation errors
+        return (None, validation_errors)
+    
+    
 def get_graph_data_uri(buffer):
     # encode svg
     svg = b64encode(buffer.getvalue()).decode()
     # return svg data uri
-    return f"data:image/svg+xml;base64,{svg}"    
+    return f"data:image/svg+xml;base64,{svg}"
+
+
+# ### 3.2 Functions related to Social Network Analysis
+
+# In[12]:
+
 
 def get_network_graph(G, graphType = "A"):
     # set conversion inch -> cm
@@ -335,20 +305,67 @@ def get_network_stats(G):
     )
 
 
-# ## 4. GENERATE
+# ### 3.3 Functions to generate docs
 
-# In[6]:
+# In[13]:
+
+
+def generate_sheets(sheets_data, prefix):
+    # try to load template
+    try:
+        # get report template
+        tpl = e.get_template("ABGrid_sheet.html")
+        # render report
+        rendered_tpl = tpl.render(sheets_data);
+        # save report as pdf
+        HTML(string=rendered_tpl).write_pdf(SHEETS_PATH / f"{prefix}_sheets.pdf")
+    # catch exceptions
+    except FileNotFoundError:
+        return(None,"Cannot locate template files")
+    
+def generate_reports(reports_data, prefix):
+    # try to load template
+    try:
+        # create DiGraph A
+        Ga = nx.DiGraph()
+        Ga.add_edges_from(reports_data["edges_a"])
+        Ga_info, Ga_data = get_network_stats(Ga)
+        reports_data["ga_info"] = Ga_info
+        reports_data["ga_data"] = Ga_data.to_dict("index")
+        reports_data["ga_graph"] = get_network_graph(Ga, "A")
+        # create DiGraph B
+        Gb = nx.DiGraph()
+        Gb.add_edges_from(reports_data["edges_b"])
+        Gb_info, Gb_data = get_network_stats(Gb)
+        reports_data["gb_info"] = Gb_info
+        reports_data["gb_data"] = Gb_data.to_dict("index")
+        reports_data["gb_graph"] = get_network_graph(Gb, "B")
+        # get report template
+        tpl = e.get_template("ABGrid_report.html")
+        # render report
+        rendered_tpl = tpl.render(reports_data);
+        # save report as pdf
+        HTML(string=rendered_tpl).write_pdf(REPORTS_PATH / f"{prefix}_report_{reports_data['group_id']}.pdf")
+    # catch exceptions
+    except FileNotFoundError:
+        return(None,"Cannot locate template files")
+
+
+# ## 4. OPERATE
+
+# In[14]:
 
 
 # init jinja environment
 e = jn.Environment(loader=jn.FileSystemLoader(TEMPLATES_PATH))
 
 
-# In[14]:
+# In[15]:
 
 
 # init list
 files = []
+prefix = ""
 # from cli
 if __name__ == '__main__' and "get_ipython" not in dir():
     # init arg parser
@@ -357,11 +374,14 @@ if __name__ == '__main__' and "get_ipython" not in dir():
     my_parser.add_argument('conf', metavar='conf', type=str, help='the configuration file name')
     # add second argument (optional)
     my_parser.add_argument('-group', metavar='group', type=str, help='the group file name')
+    # add third argument (optional)
+    my_parser.add_argument('-prefix', metavar='prefix', type=str, help='prefix to add to group file name')
     # parse arguments
     args = my_parser.parse_args()
     # set files
     files = (args.conf, [args.group])
-    print(files)
+    # set prefix
+    prefix = args.prefix
 # from jupyter
 else:
     # export jupyter notebook to python code
@@ -371,9 +391,11 @@ else:
         "conf.yaml",
         [ f"gruppo{g}.yaml" for g in [2,3,6,8] ]
     );
+    # set prefix
+    prefix = "mlli_interni_21"
 
 
-# In[8]:
+# In[16]:
 
 
 # notify user
@@ -385,18 +407,18 @@ if group_files == [None]:
     # notify user
     print(f"2. Loading data file ({configuration_file})...")
     # load data
-    sheet_data, errors = load_sheet_data(configuration_file, CONF_YAML_SCHEMA)
+    sheets_data, sheets_errors = get_sheets_data(configuration_file, CONF_YAML_SCHEMA)
     # if data was correctly loaded
-    if (sheet_data != None):
+    if (sheets_data != None):
         # notify user
         print("3. Generating sheet(s)...")
         # generate report
-        generate_sheets(sheet_data)
+        generate_sheets(sheets_data, prefix)
         # notify user
         print("4. Sheet(s) generated.")
     else:
         # notify user
-        print(errors)
+        print(sheets_errors)
 # generate reports
 else:
     # loop through groups
@@ -404,19 +426,19 @@ else:
         # notify user
         print(f"2. Loading data files ({group_file})...")
         # load data
-        report_data, errors = load_report_data(
+        reports_data, reports_errors = get_reports_data(
             configuration_file, CONF_YAML_SCHEMA, 
             group_file, GROUP_YAML_SCHEMA
         )
         # if data was correctly loaded
-        if (report_data != None):
+        if (reports_data != None):
             # notify user
             print("3. Generating report(s)...")
             # generate reports
-            generate_reports(report_data)
+            generate_reports(reports_data, prefix)
             # notify user
             print("4. Report(s) generated.")
         else:
             # notify user
-            print(errors)
+            print(reports_errors)
 
