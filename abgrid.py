@@ -44,13 +44,18 @@ matplotlib.use("Agg")
 # In[2]:
 
 
-# folder path constants
+# folder paths
 TEMPLATES_PATH = Path("./templates/")
 DATA_PATH = Path("./data/")
 REPORTS_PATH = Path("./out/reports/")
 SHEETS_PATH = Path("./out/sheets/")
 
-# conf yaml validator schema
+# templates
+SHEET_TPL = "sheet.html"
+REPORT_TPL = "report.html"
+GROUP_TPL = "group.html"
+
+# configuration yaml validator schema
 CONF_YAML_SCHEMA = {
     "titolo": { "type": "string" },
     "numero_gruppi": { "type": "integer", "min": 1, "max": 20 },
@@ -90,9 +95,9 @@ GROUP_YAML_SCHEMA = {
 
 # ## 3. FUNCTIONS
 
-# ### 3.1 Function related to DATA
+# ### 3.1 Function related to DATA and DOCUMENTS
 
-# In[3]:
+# In[51]:
 
 
 def load_yaml_file(yaml_file, yaml_schema, validator):
@@ -223,9 +228,38 @@ def get_graph_data_uri(buffer):
     return f"data:image/svg+xml;base64,{svg}"
 
 
+def generate_pdf_from_template(doc_type, doc_template, doc_data, path, prefix):
+    # try to load sheet template
+    try:
+        # get doc template
+        tpl = e.get_template(doc_template)
+        # render doc
+        rendered_tpl = tpl.render(doc_data);
+        # save doc as pdf
+        HTML(string=rendered_tpl).write_pdf(path / f"{prefix}_{doc_type}.pdf")
+    # catch exceptions
+    except FileNotFoundError:
+        return(None, f"Cannot locate {doc_type} template file")
+    
+def generate_yaml_from_template(doc_type, doc_template, doc_data, path, prefix):
+    # try to load sheet template
+    try:
+        # get doc template
+        tpl = e.get_template(doc_template)
+        # render doc
+        rendered_tpl = re.sub("^\s*\n$ ","",tpl.render(doc_data));
+        rendered_tpl ="\n".join([ line for line in rendered_tpl.split("\n") if len(line)>0])
+        # save doc as yaml
+        with open(path / f"{prefix}.yaml", "w") as file:
+            file.write(rendered_tpl)
+    # catch exceptions
+    except FileNotFoundError:
+        return(None, f"Cannot locate {doc_type} template file")
+
+
 # ### 3.2 Functions related to Social Network Analysis
 
-# In[4]:
+# In[47]:
 
 
 def get_network_graph(G, graphType = "A"):
@@ -321,48 +355,16 @@ def get_network_stats(G):
     )
 
 
-# ### 3.3 Functions to generate docs
+# ## 4. GENERATE
 
-# In[5]:
-
-
-def generate_sheet(sheet_data, prefix):
-    # try to load sheet template
-    try:
-        # get sheet template
-        tpl = e.get_template("ABGrid_sheet.html")
-        # render reports
-        rendered_tpl = tpl.render(sheet_data);
-        # save reports as pdf
-        HTML(string=rendered_tpl).write_pdf(SHEETS_PATH / f"{prefix}_sheets.pdf")
-    # catch exceptions
-    except FileNotFoundError:
-        return(None,"Cannot locate sheet template file")
-    
-def generate_report(report_data, prefix):
-    # try to load template
-    try:
-        # get report template
-        tpl = e.get_template("ABGrid_report.html")
-        # render report
-        rendered_tpl = tpl.render(report_data);
-        # save report as pdf
-        HTML(string=rendered_tpl).write_pdf(REPORTS_PATH / f"{prefix}_report_{report_data['group_id']}.pdf")
-    # catch exceptions
-    except FileNotFoundError:
-        return(None,"Cannot locate report template file")
-
-
-# ## 4. OPERATE
-
-# In[6]:
+# In[48]:
 
 
 # init jinja environment
 e = jn.Environment(loader=jn.FileSystemLoader(TEMPLATES_PATH))
 
 
-# In[7]:
+# In[49]:
 
 
 # init list
@@ -373,11 +375,11 @@ if __name__ == '__main__' and "get_ipython" not in dir():
     # init arg parser
     my_parser = argparse.ArgumentParser(description="generate ABGrid sheets and/or reports")
     # add first argument
-    my_parser.add_argument('conf', metavar='conf', type=str, help='the configuration file name')
+    my_parser.add_argument('-conf', required=True, type=str, help='the configuration file name')
     # add second argument (optional)
-    my_parser.add_argument('-group', metavar='group', type=str, help='the group file name')
+    my_parser.add_argument('-group', type=str, help='the group file name')
     # add third argument (optional)
-    my_parser.add_argument('-prefix', metavar='prefix', type=str, help='prefix to add to group file name')
+    my_parser.add_argument('-prefix', type=str, help='prefix to add to group file name')
     # parse arguments
     args = my_parser.parse_args()
     # set files
@@ -391,13 +393,13 @@ else:
     # set files
     files = (
         "conf.yaml",
-        [ f"gruppo{g}.yaml" for g in [2,3,6,8] ]
+        [None] #[ f"gruppo{g}.yaml" for g in [2,3,6,8] ]
     );
     # set prefix
     prefix = "mlli_interni_21"
 
 
-# In[8]:
+# In[54]:
 
 
 # notify user
@@ -407,17 +409,21 @@ configuration_file, group_files = files
 # generate sheet(s)
 if group_files == [None]:
     # notify user
-    print(f"2. Loading data file ({configuration_file})...")
+    print(f"2. Loading file ({configuration_file})...")
     # load sheet(s) data
     sheet_data, sheet_errors = get_sheet_data(configuration_file, CONF_YAML_SCHEMA)
     # if sheet(s) data was correctly loaded
     if (sheet_data != None):
         # notify user
-        print("3. Generating sheet(s)...")
+        print("3. Generating doc(s)...")
         # generate sheet(s)
-        generate_sheet(sheet_data, prefix)
+        generate_pdf_from_template("sheet", SHEET_TPL, sheet_data, SHEETS_PATH, prefix)
+        # loop through groups
+        for g in sheet_data["groups"]:
+            # generate group input doc(s)
+            generate_yaml_from_template("group", GROUP_TPL, sheet_data, DATA_PATH, f"{prefix}_gruppo_{g}")
         # notify user
-        print("4. Sheet(s) generated.")
+        print("4. Doc(s) generated.")
     else:
         # notify user
         print(sheet_errors)
@@ -426,7 +432,7 @@ else:
     # loop through groups
     for group_file in group_files:
         # notify user
-        print(f"2. Loading data files ({group_file})...")
+        print(f"2. Loading file ({group_file})...")
         # load report(s) data
         report_data, report_errors = get_report_data(
             configuration_file, CONF_YAML_SCHEMA, 
@@ -437,10 +443,22 @@ else:
             # notify user
             print("3. Generating report(s)...")
             # generate report(s)
-            generate_report(report_data, prefix)
+            generate_pdf_from_template("report", REPORT_TPL, report_data, REPORTS_PATH, prefix)
             # notify user
             print("4. Report(s) generated.")
         else:
             # notify user
             print(report_errors)
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
 
