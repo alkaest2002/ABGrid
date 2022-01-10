@@ -97,7 +97,7 @@ GROUP_YAML_SCHEMA = {
 
 # ### 3.1 Function related to DATA and DOCUMENTS
 
-# In[51]:
+# In[8]:
 
 
 def load_yaml_file(yaml_file, yaml_schema, validator):
@@ -246,12 +246,13 @@ def generate_yaml_from_template(doc_type, doc_template, doc_data, path, prefix):
     try:
         # get doc template
         tpl = e.get_template(doc_template)
-        # render doc
-        rendered_tpl = re.sub("^\s*\n$ ","",tpl.render(doc_data));
-        rendered_tpl ="\n".join([ line for line in rendered_tpl.split("\n") if len(line)>0])
-        # save doc as yaml
-        with open(path / f"{prefix}.yaml", "w") as file:
-            file.write(rendered_tpl)
+        for g in doc_data["groups"]:
+            # render doc
+            rendered_tpl = re.sub("^\s*\n$ ","",tpl.render(doc_data | { groupId: g}));
+            rendered_tpl ="\n".join([ line for line in rendered_tpl.split("\n") if len(line)>0])
+            # save doc as yaml
+            with open(path / f"{prefix}_gruppo_{g}.yaml", "w") as file:
+                file.write(rendered_tpl)
     # catch exceptions
     except FileNotFoundError:
         return(None, f"Cannot locate {doc_type} template file")
@@ -259,7 +260,7 @@ def generate_yaml_from_template(doc_type, doc_template, doc_data, path, prefix):
 
 # ### 3.2 Functions related to Social Network Analysis
 
-# In[47]:
+# In[9]:
 
 
 def get_network_graph(G, graphType = "A"):
@@ -357,14 +358,14 @@ def get_network_stats(G):
 
 # ## 4. GENERATE
 
-# In[48]:
+# In[10]:
 
 
 # init jinja environment
 e = jn.Environment(loader=jn.FileSystemLoader(TEMPLATES_PATH))
 
 
-# In[49]:
+# In[11]:
 
 
 # init list
@@ -399,7 +400,7 @@ else:
     prefix = "mlli_interni_21"
 
 
-# In[54]:
+# In[12]:
 
 
 # notify user
@@ -418,10 +419,8 @@ if group_files == [None]:
         print("3. Generating doc(s)...")
         # generate sheet(s)
         generate_pdf_from_template("sheet", SHEET_TPL, sheet_data, SHEETS_PATH, prefix)
-        # loop through groups
-        for g in sheet_data["groups"]:
-            # generate group input doc(s)
-            generate_yaml_from_template("group", GROUP_TPL, sheet_data, DATA_PATH, f"{prefix}_gruppo_{g}")
+        # generate group input doc(s)
+        generate_yaml_from_template("group", GROUP_TPL, sheet_data, DATA_PATH, prefix)
         # notify user
         print("4. Doc(s) generated.")
     else:
