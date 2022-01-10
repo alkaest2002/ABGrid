@@ -97,7 +97,7 @@ GROUP_YAML_SCHEMA = {
 
 # ### 3.1 Function related to DATA and DOCUMENTS
 
-# In[18]:
+# In[3]:
 
 
 def load_yaml_file(yaml_file, yaml_schema, validator):
@@ -228,15 +228,17 @@ def get_graph_data_uri(buffer):
     return f"data:image/svg+xml;base64,{svg}"
 
 
-def generate_pdf_from_template(doc_type, doc_template, doc_data, path, prefix):
+def generate_pdf_from_template(doc_type, doc_template, doc_data, path, prefix, suffix):
     # try to load sheet template
     try:
         # get doc template
         tpl = e.get_template(doc_template)
         # render doc
         rendered_tpl = tpl.render(doc_data);
+        # build file name
+        filename = re.sub("^_|_$", "", f"{prefix}_{doc_type}_{suffix}")
         # save doc as pdf
-        HTML(string=rendered_tpl).write_pdf(path / f"{prefix}_{doc_type}.pdf")
+        HTML(string=rendered_tpl).write_pdf(path / f"{filename}.pdf")
     # catch exceptions
     except FileNotFoundError:
         return(None, f"Cannot locate {doc_type} template file")
@@ -261,7 +263,7 @@ def generate_yaml_group_imputs(doc_data, prefix):
 
 # ### 3.2 Functions related to Social Network Analysis
 
-# In[19]:
+# In[4]:
 
 
 def get_network_graph(G, graphType = "A"):
@@ -349,7 +351,7 @@ def get_network_stats(G):
             nodes=G.number_of_nodes(), 
             edges=G.number_of_edges(),
             degree_centralization=get_degree_centralization(G),
-            clustering_coefficient=nx.average_clustering(G),
+            transitivity=nx.transitivity(G),
             reciprocity=nx.reciprocity(G)
         ),
         # micro-level stats
@@ -359,14 +361,14 @@ def get_network_stats(G):
 
 # ## 4. GENERATE
 
-# In[20]:
+# In[5]:
 
 
 # init jinja environment
 e = jn.Environment(loader=jn.FileSystemLoader(TEMPLATES_PATH))
 
 
-# In[21]:
+# In[6]:
 
 
 # init list
@@ -395,13 +397,13 @@ else:
     # set files
     files = (
         "conf.yaml",
-        [None] #[ f"gruppo{g}.yaml" for g in [2,3,6,8] ]
+        [ f"gruppo{g}.yaml" for g in [2,3,6,8] ]
     );
     # set prefix
     prefix = "mlli_interni_21"
 
 
-# In[22]:
+# In[7]:
 
 
 # notify user
@@ -419,9 +421,9 @@ if group_files == [None]:
         # notify user
         print("3. Generating doc(s)...")
         # generate sheet(s)
-        generate_pdf_from_template("sheet", SHEET_TPL, sheet_data, SHEETS_PATH, prefix)
+        generate_pdf_from_template("sheet", SHEET_TPL, sheet_data, SHEETS_PATH, prefix, None)
         # generate group input doc(s)
-        generate_yaml_group_imputs(sheet_data, prefix)
+        generate_yaml_group_imputs(sheet_data, prefix, suffix)
         # notify user
         print("4. Doc(s) generated.")
     else:
@@ -443,7 +445,7 @@ else:
             # notify user
             print("3. Generating report(s)...")
             # generate report(s)
-            generate_pdf_from_template("report", REPORT_TPL, report_data, REPORTS_PATH, prefix)
+            generate_pdf_from_template("report", REPORT_TPL, report_data, REPORTS_PATH, prefix, group_file)
             # notify user
             print("4. Report(s) generated.")
         else:

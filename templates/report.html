@@ -1,6 +1,6 @@
 {% macro network_info(info) %}
   <span>
-    ND {{ info.nodes }}, ED {{ info.edges }}, DC {{ (info.degree_centralization * 100)|round|int }}%, CL {{ (info.clustering_coefficient * 100)|round|int }}%, RP {{ (info.reciprocity * 100)|round|int }}%
+    ND {{ info.nodes }}, ED {{ info.edges }}, DC {{ (info.degree_centralization * 100)|round|int }}%, TR {{ (info.transitivity * 100)|round|int }}%, RP {{ (info.reciprocity * 100)|round|int }}%
   </span>
 {% endmacro %}
 
@@ -232,7 +232,7 @@
         </tr>
       </table>
       <div class="legend">
-        <b>ND</b> = Number of Nodes, <b>ED</b> = Number of Edges, <b>DC</b> = Degree Centralization, <b>CL</b> = Global Clustering<br/><b>RP</b> = Reciprocity, <b>IC</b> = In-Degree Centrality (rango), <b>PR</b> = PageRank Centrality (rango)<br /><b>BC</b> = Betweenness Centrality (rango), <b>CC</b> = Closenness Centrality (rango)<br /><b>OR</b> = Other Nodes Reachability (%), <b>NI</b> = No In-Degree.
+        <b>ND</b> = Number of Nodes, <b>ED</b> = Number of Edges, <b>DC</b> = Degree Centralization, <b>TR</b> = Transitivity<br/><b>RP</b> = Reciprocity, <b>IC</b> = In-Degree Centrality (rango), <b>PR</b> = PageRank Centrality (rango)<br /><b>BC</b> = Betweenness Centrality (rango), <b>CC</b> = Closenness Centrality (rango)<br /><b>OR</b> = Other Nodes Reachability (%), <b>NI</b> = No In-Degree.
       </div>
       <div class="footer">
         <p><b>Autori</b>: Dr. Pierpaolo CALANNA, PhD, Dr. Gaetano BUONAIUTO (2021-{{ year }}), <b>Licenza d'uso</b>: l'impaginazione del presente report, la personalizzazione dei grafici, nonché la scelta degli indici quantitativi sono regolati da licenza Creative Commons: Attribuzione - Non opere derivate 4.0 Internazionale (https://creativecommons.org/licenses/by-nd/4.0).</p>
