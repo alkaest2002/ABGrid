@@ -423,7 +423,7 @@ if group_files == [None]:
         # generate sheet(s)
         generate_pdf_from_template("sheet", SHEET_TPL, sheet_data, SHEETS_PATH, prefix, None)
         # generate group input doc(s)
-        generate_yaml_group_imputs(sheet_data, prefix, suffix)
+        generate_yaml_group_imputs(sheet_data, prefix)
         # notify user
         print("4. Doc(s) generated.")
     else:
