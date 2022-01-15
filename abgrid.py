@@ -7,7 +7,7 @@
 
 # ## 1. IMPORTS
 
-# In[1]:
+# In[30]:
 
 
 # imports
@@ -20,10 +20,11 @@ import json
 import datetime
 import yaml
 import cerberus
+import string
+import random
 import numpy as np
 import pandas as pd
 import networkx as nx
-import networkx.algorithms.connectivity as nxcon
 import matplotlib
 import matplotlib.pyplot as plt
 import jinja2 as jn
@@ -34,14 +35,13 @@ from cerberus import Validator
 from weasyprint import HTML
 
 # customize matplotlib
-font = {'size' : 8}
-matplotlib.rc('font', **font)
+matplotlib.rc('font', **{'size' : 8})
 matplotlib.use("Agg")
 
 
 # ## 2. CONSTANTS
 
-# In[2]:
+# In[31]:
 
 
 # folder paths
@@ -59,7 +59,7 @@ GROUP_TPL = "group.html"
 CONF_YAML_SCHEMA = {
     "titolo": { "type": "string" },
     "numero_gruppi": { "type": "integer", "min": 1, "max": 20 },
-    "numero_partecipanti_per_gruppo": { "type": "integer", "min": 3, "max": 26 },
+    "numero_partecipanti_per_gruppo": { "type": "integer", "min": 3, "max": 12 },
     "consegna": { "type": "string" },
     "domandaA":{ "type": "string" },
     "domandaA_scelte": { "type": "string" },
@@ -95,9 +95,35 @@ GROUP_YAML_SCHEMA = {
 
 # ## 3. FUNCTIONS
 
-# ### 3.1 Function related to DATA and DOCUMENTS
+# ### 3.1Utility functions
 
-# In[3]:
+# In[32]:
+
+
+def get_graph_data_uri(buffer):
+    # encode buffer to base64
+    data = b64encode(buffer.getvalue()).decode()
+    # return data as svg uri
+    return f"data:image/svg+xml;base64,{data}"
+
+def unpack_edges(data):
+    # init edges list
+    unpacked_edges = [];
+    # loop through rows in data
+    for row in data:
+        # loop through nodes and edges
+        for node, edges in row.items():
+            # split edges
+            for edge in edges.split(","):
+                # append edge to edges list
+                unpacked_edges.append((node, edge))
+    # return edges list
+    return unpacked_edges
+
+
+# ### 3.2 Functions related to DOCUMENTS and DATA
+
+# In[33]:
 
 
 def load_yaml_file(yaml_file, yaml_schema, validator):
@@ -117,98 +143,83 @@ def load_yaml_file(yaml_file, yaml_schema, validator):
             return (None, validator.errors)
     # catch exceptions
     except FileNotFoundError:
+        # return None as data and errors
         return(None,"Cannot locate files")
     except yaml.YAMLError as e:
+        # return None as data and errors
         return (None, "Yaml files could not be parsed")
     except cerberus.DocumentError as e:
+        # return None as data and errors
         return (None, "Document was loaded but cannot be evaluated")
     except cerberus.SchemaError as e:
+        # return None as data and errors
         return (None, "Invalid yaml validation schema")
     
 def get_sheet_data(conf_file, conf_yaml_schema):
     # init validator
     validator = Validator(required_all=True)
-    # load sheet data
-    sheet_yaml_data, validation_errors = load_yaml_file(DATA_PATH / conf_file, conf_yaml_schema, validator)
+    # load configuration data
+    yaml_data, validation_errors = load_yaml_file(DATA_PATH / conf_file, conf_yaml_schema, validator)
     # if configuration data was correctly loaded
-    if sheet_yaml_data != None:
-        # init dict
+    if yaml_data != None:
+        # init sheet_data dict
         sheet_data = dict()
-        # compute likert
-        likert = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[:sheet_yaml_data["numero_partecipanti_per_gruppo"]]
         # update sheet_data
-        sheet_data["title"] = sheet_yaml_data["titolo"]
-        sheet_data["groups"] = list(range(1, sheet_yaml_data["numero_gruppi"] +1))
-        sheet_data["likert"] = likert
-        sheet_data["explanation"] = sheet_yaml_data["consegna"]
-        sheet_data["ga_question"] = sheet_yaml_data["domandaA"]
-        sheet_data["ga_question_hint"] = sheet_yaml_data["domandaA_scelte"]
-        sheet_data["gb_question"] = sheet_yaml_data["domandaB"]
-        sheet_data["gb_question_hint"] = sheet_yaml_data["domandaB_scelte"]
+        sheet_data["title"] = yaml_data["titolo"]
+        sheet_data["groups"] = list(range(1, yaml_data["numero_gruppi"] +1))
+        sheet_data["likert"] = string.ascii_uppercase[:yaml_data["numero_partecipanti_per_gruppo"]]
+        sheet_data["explanation"] = yaml_data["consegna"]
+        sheet_data["ga_question"] = yaml_data["domandaA"]
+        sheet_data["ga_question_hint"] = yaml_data["domandaA_scelte"]
+        sheet_data["gb_question"] = yaml_data["domandaB"]
+        sheet_data["gb_question_hint"] = yaml_data["domandaB_scelte"]
         # return sheet data
         return (sheet_data, None)
     # on validation errors
     else:
         # return None and validation errors
         return (None, validation_errors)
+    
 
-def unpack_edges(data):
-    # init edges list
-    unpacked_edges = [];
-    # loop through rows in data
-    for row in data:
-        # loop through nodes and edges
-        for node, edges in row.items():
-            # split edges
-            for edge in edges.split(","):
-                # append edge to edges list
-                unpacked_edges.append((node, edge))
-    # return edges list
-    return unpacked_edges
-
-
-def get_report_data(conf_file, conf_yaml_schema, group_file, group_yaml_schema):
+def get_report_data(conf_file, conf_yaml_schema, group_file, group_yaml_schema, anonymize_nodes=False):
     # init validator
     validator = Validator(required_all=True)
-    # try to load configuration yaml file
+    # try to load configuration data
     conf_yaml_data, validation_errors = load_yaml_file(DATA_PATH / conf_file, conf_yaml_schema, validator)
     # if configuration data was correctly loaded
     if conf_yaml_data != None:
         # try to load group data
         group_yaml_data, validation_errors =            load_yaml_file(DATA_PATH / group_file, group_yaml_schema, validator)
         # if group data was correctly loaded
-        if group_yaml_data != None:
-            group_yaml_data["gruppo"] = group_yaml_data["IDGruppo"]
-            group_yaml_data["scelteA"] = unpack_edges(group_yaml_data["scelteA"])
-            group_yaml_data["scelteB"] = unpack_edges(group_yaml_data["scelteB"])
-            # merge data
-            report_yaml_data =  conf_yaml_data | group_yaml_data
+        if group_yaml_data != None:  
             # init report data
             report_data = dict()
             # update report data
-            report_data["assessment_info"] = report_yaml_data["titolo"]
-            report_data["group_id"] = report_yaml_data["gruppo"]
-            report_data["ga_question"] = report_yaml_data["domandaA"]
-            report_data["gb_question"] = report_yaml_data["domandaB"]
-            report_data["edges_a"] = report_yaml_data["scelteA"]
-            report_data["edges_b"] = report_yaml_data["scelteB"]
+            report_data["assessment_info"] = conf_yaml_data["titolo"]
+            report_data["group_id"] = f'gruppo {group_yaml_data["IDGruppo"]}'
+            report_data["ga_question"] = conf_yaml_data["domandaA"]
+            report_data["gb_question"] = conf_yaml_data["domandaB"]
+            report_data["edges_a"] = unpack_edges(group_yaml_data["scelteA"])
+            report_data["edges_b"] = unpack_edges(group_yaml_data["scelteB"])
             report_data["year"] = datetime.datetime.utcnow().year
-            # create DiGraph A
-            Ga = nx.DiGraph()
-            Ga.add_edges_from(report_data["edges_a"])
+             # ensure edge lists are correct
+            if (
+                "".join(sorted(set(sum(map(list, report_data["edges_a"]), [])))) != \
+                    "".join(sorted(set(sum(map(list, report_data["edges_b"]), []))))
+            ):
+                return (None, "Letters are not correct")
+            # create networks A & B
+            (Ga, loca), (Gb, locb) = get_networks((report_data["edges_a"], report_data["edges_b"]), False)
+            # add network A related data to report data
             Ga_info, Ga_data = get_network_stats(Ga)
-            # add DiGraph A to report data
             report_data["ga_info"] = Ga_info
             report_data["ga_data"] = Ga_data.to_dict("index")
-            report_data["ga_graph"] = get_network_graph(Ga, "A")
-            # create DiGraph B
-            Gb = nx.DiGraph()
-            Gb.add_edges_from(report_data["edges_b"])
+            report_data["ga_graph"] = get_network_graph(Ga, loca, "A")
+            # add network B related data to report data
             Gb_info, Gb_data = get_network_stats(Gb)
-            # add DiGraph B to reports data
             report_data["gb_info"] = Gb_info
             report_data["gb_data"] = Gb_data.to_dict("index")
-            report_data["gb_graph"] = get_network_graph(Gb, "B")
+            report_data["gb_graph"] = get_network_graph(Gb, locb, "B")
             # return report data
             return (report_data, None)
         # on validation error of group data
@@ -219,14 +230,6 @@ def get_report_data(conf_file, conf_yaml_schema, group_file, group_yaml_schema):
     else:
         # return None and validation errors
         return (None, validation_errors)
-    
-    
-def get_graph_data_uri(buffer):
-    # encode svg
-    svg = b64encode(buffer.getvalue()).decode()
-    # return svg data uri
-    return f"data:image/svg+xml;base64,{svg}"
-
 
 def generate_pdf_from_template(doc_type, doc_template, doc_data, path, prefix, suffix):
     # try to load sheet template
@@ -261,27 +264,51 @@ def generate_yaml_group_imputs(doc_data, prefix):
         return(None, f"Cannot locate {doc_type} template file")
 
 
-# ### 3.2 Functions related to Social Network Analysis
+# ### 3.3 Functions related to Social Network Analysis
 
-# In[4]:
+# In[34]:
 
 
-def get_network_graph(G, graphType = "A"):
+def get_networks(edges, anonymize_nodes):
+    # unpack edges
+    edges_A, edges_B = edges
+    # if nodes are to be anonymized
+    if anonymize_nodes:
+        # get list of uppercase letters
+        alphabet = [ letter for letter in string.ascii_uppercase ]
+        # get list of nodes ids (i.e., upper case letters)
+        original_letters = sorted(list(set(sum(map(list, edges_A), []) + sum(map(list, edges_B), []))))
+        # get unused letters
+        unused_letters = [ letter for letter in alphabet if letter not in original_letters ]
+        # shuffle unused letters
+        random.shuffle(unused_letters)
+        # define translation mapping
+        mapping = str.maketrans(dict(zip(original_letters, unused_letters)))
+        # obfuscate nodes ids in edges_A
+        edges_A = list(map(lambda x: (x[0].translate(mapping), x[1].translate(mapping)), edges_A))
+        # obfuscate nodes ids in edges_B
+        edges_B = list(map(lambda x: (x[0].translate(mapping), x[1].translate(mapping)), edges_B))
+    # create netowrk A & netowrk B
+    Ga, Gb = nx.DiGraph(edges_A), nx.DiGraph(edges_B)
+    # create locations A & locations B
+    loca, locb = nx.spring_layout(Ga, k=.3, seed=42), nx.spring_layout(Gb, k=.3, seed=42)
+    # return networks and locations
+    return ((Ga, loca), (Gb, locb))
+
+def get_network_graph(G, loc, graphType = "A"):
     # set conversion inch -> cm
     cm = 1/2.54
-    # define type of graph color
+    # define color based of type of network (either A or B)
     color = "#0000FF" if graphType == "A" else "#FF0000"
-    # init buffer
+    # init file buffer
     buffer = io.BytesIO()
-    # init figure
+    # init plt figure and ax
     fig, ax = plt.subplots(constrained_layout=True, figsize=(9*cm,9*cm))
     # hide axis
     ax.axis('off')
     #-------------------------------------------------------------------------------------------
     # draw network
     # ------------------------------------------------------------------------------------------
-    # compute locations
-    loc = nx.spring_layout(G, k=0.3, seed=42)
     # draw nodes
     nx.draw_networkx_nodes(G.nodes(), loc, node_color=color, edgecolors=color, ax=ax)
     # set mutual preferences
@@ -331,11 +358,11 @@ def get_network_stats(G):
     df = pd.concat([
         pd.Series(links, name="lns"),
         pd.Series(nx.in_degree_centrality(G), name="ic").rank(method="dense", ascending=False),
-        pd.Series(nx.pagerank(G), name="pr").rank(method="dense", ascending=False),
+        pd.Series(nx.pagerank(G, max_iter=1000), name="pr").rank(method="dense", ascending=False),
         pd.Series(nx.betweenness_centrality(G), name="bc").rank(method="dense", ascending=False),
         pd.Series(nx.closeness_centrality(G), name="cc").rank(method="dense", ascending=False),
         pd.Series(
-            { n: len(x)/len(G.nodes()) for n,x in dict(nx.all_pairs_shortest_path_length(G)).items()}
+            { n: (len(x)-1)/len(G.nodes()) for n,x in dict(nx.all_pairs_shortest_path_length(G)).items()}
             , name="or"
         ),
         pd.Series(no_indegree, name="ni")
@@ -361,14 +388,14 @@ def get_network_stats(G):
 
 # ## 4. GENERATE
 
-# In[5]:
+# In[35]:
 
 
 # init jinja environment
 e = jn.Environment(loader=jn.FileSystemLoader(TEMPLATES_PATH))
 
 
-# In[6]:
+# In[36]:
 
 
 # init list
@@ -379,11 +406,11 @@ if __name__ == '__main__' and "get_ipython" not in dir():
     # init arg parser
     my_parser = argparse.ArgumentParser(description="generate ABGrid sheets and/or reports")
     # add first argument
-    my_parser.add_argument('-conf', required=True, type=str, help='the configuration file name')
+    my_parser.add_argument('-conf', required=True, type=str, help='the configuration file')
     # add second argument (optional)
-    my_parser.add_argument('-group', type=str, help='the group file name')
+    my_parser.add_argument('-group', type=str, help='the group file')
     # add third argument (optional)
-    my_parser.add_argument('-prefix', type=str, help='prefix to add to group file name')
+    my_parser.add_argument('-prefix', type=str, help='prefix to add to group file')
     # parse arguments
     args = my_parser.parse_args()
     # set files
@@ -396,14 +423,14 @@ else:
     get_ipython().system('jupyter nbconvert abgrid.ipynb --to python --output "abgrid.py"')
     # set files
     files = (
-        "conf.yaml",
+        "21_concorso_mlli_interni.yaml",
         [ f"gruppo{g}.yaml" for g in [2,3,6,8] ]
     );
     # set prefix
     prefix = "mlli_interni_21"
 
 
-# In[7]:
+# In[37]:
 
 
 # notify user
@@ -421,7 +448,7 @@ if group_files == [None]:
         # notify user
         print("3. Generating doc(s)...")
         # generate sheet(s)
-        generate_pdf_from_template("sheet", SHEET_TPL, sheet_data, SHEETS_PATH, prefix, None)
+        generate_pdf_from_template("sheet", SHEET_TPL, sheet_data, SHEETS_PATH, prefix, "")
         # generate group input doc(s)
         generate_yaml_group_imputs(sheet_data, prefix)
         # notify user
