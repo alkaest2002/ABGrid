@@ -7,7 +7,7 @@
 
 # ## 1. IMPORTS
 
-# In[30]:
+# In[1]:
 
 
 # imports
@@ -41,7 +41,7 @@ matplotlib.use("Agg")
 
 # ## 2. CONSTANTS
 
-# In[31]:
+# In[2]:
 
 
 # folder paths
@@ -97,7 +97,7 @@ GROUP_YAML_SCHEMA = {
 
 # ### 3.1Utility functions
 
-# In[32]:
+# In[3]:
 
 
 def get_graph_data_uri(buffer):
@@ -123,7 +123,7 @@ def unpack_edges(data):
 
 # ### 3.2 Functions related to DOCUMENTS and DATA
 
-# In[33]:
+# In[4]:
 
 
 def load_yaml_file(yaml_file, yaml_schema, validator):
@@ -202,11 +202,12 @@ def get_report_data(conf_file, conf_yaml_schema, group_file, group_yaml_schema, 
             report_data["edges_a"] = unpack_edges(group_yaml_data["scelteA"])
             report_data["edges_b"] = unpack_edges(group_yaml_data["scelteB"])
             report_data["year"] = datetime.datetime.utcnow().year
-             # ensure edge lists are correct
-            if (
-                "".join(sorted(set(sum(map(list, report_data["edges_a"]), [])))) != \
-                    "".join(sorted(set(sum(map(list, report_data["edges_b"]), []))))
-            ):
+            # get nodes identifiers
+            nodes_A = set(sum(map(list, report_data["edges_a"]), []))
+            nodes_B = set(sum(map(list, report_data["edges_b"]), []))
+            # under this condition
+            if len(nodes_A.symmetric_difference(nodes_B)) > 0:
+                # return None and errors
                 return (None, "Letters are not correct")
             # create networks A & B
             (Ga, loca), (Gb, locb) = get_networks((report_data["edges_a"], report_data["edges_b"]), False)
@@ -266,7 +267,7 @@ def generate_yaml_group_imputs(doc_data, prefix):
 
 # ### 3.3 Functions related to Social Network Analysis
 
-# In[34]:
+# In[5]:
 
 
 def get_networks(edges, anonymize_nodes):
@@ -362,7 +363,7 @@ def get_network_stats(G):
         pd.Series(nx.betweenness_centrality(G), name="bc").rank(method="dense", ascending=False),
         pd.Series(nx.closeness_centrality(G), name="cc").rank(method="dense", ascending=False),
         pd.Series(
-            { n: (len(x)-1)/len(G.nodes()) for n,x in dict(nx.all_pairs_shortest_path_length(G)).items()}
+            { n: len(x)/len(G.nodes()) for n,x in dict(nx.all_pairs_shortest_path_length(G)).items()}
             , name="or"
         ),
         pd.Series(no_indegree, name="ni")
@@ -388,14 +389,14 @@ def get_network_stats(G):
 
 # ## 4. GENERATE
 
-# In[35]:
+# In[6]:
 
 
 # init jinja environment
 e = jn.Environment(loader=jn.FileSystemLoader(TEMPLATES_PATH))
 
 
-# In[36]:
+# In[7]:
 
 
 # init list
@@ -430,7 +431,7 @@ else:
     prefix = "mlli_interni_21"
 
 
-# In[37]:
+# In[8]:
 
 
 # notify user
@@ -480,10 +481,10 @@ else:
             print(report_errors)
 
 
-# In[ ]:
+# In[17]:
 
 
-
+len(set([1,2]).symmetric_difference(set([1,2,3])))>0
 
 
 # In[ ]:
