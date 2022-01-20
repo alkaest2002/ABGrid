@@ -187,6 +187,11 @@
         background-color: #eee;
       }
 
+      .no-border {
+        border: 1px solid transparent;
+        width: 20px;
+      }
+
       .legend {
         margin-top: 25px;
       }
@@ -225,7 +230,7 @@
         <td>
           {{ network("A", ga_question, ga_graph, ga_info, ga_data) }}
         </td>
-        <td></td>
+        <td class="no-border"></td>
         <td>
           {{ network("B", gb_question, gb_graph, gb_info, gb_data) }}
         </td>

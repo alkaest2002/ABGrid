@@ -4,23 +4,21 @@ IDGruppo: 2
 # rispetta gli spazi e i trattini
 # es. - A: B,C
 scelteA:
-  - A: 
-  - B: 
-  - C: 
-  - D: 
-  - E: 
-  - F: 
-  - G: 
-  - H: 
+  - A: D,F
+  - B: D,F
+  - C: A,F
+  - D: F,G
+  - E: B,F
+  - F: B,D
+  - G: B,C
 # indica le scelte di ogni partecipante
 # rispetta gli spazi e i trattini
 # es. - A: B,C
 scelteB:
-  - A: 
-  - B: 
-  - C: 
-  - D: 
-  - E: 
-  - F: 
-  - G: 
-  - H: 
+  - A: B,D
+  - B: C,D
+  - C: D,F
+  - D: C,F
+  - E: C,D
+  - F: D
+  - G: B,F

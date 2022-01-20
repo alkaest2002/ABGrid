@@ -7,7 +7,7 @@
 
 # ## 1. IMPORTS
 
-# In[1]:
+# In[33]:
 
 
 # imports
@@ -41,7 +41,7 @@ matplotlib.use("Agg")
 
 # ## 2. CONSTANTS
 
-# In[2]:
+# In[34]:
 
 
 # folder paths
@@ -79,7 +79,7 @@ GROUP_YAML_SCHEMA = {
         "schema":{
             "type": "dict",
             "keysrules": {"type": "string", "regex": "^[A-Z]{1,1}$"},
-            "valuesrules": {"type": "string", "regex": "^[A-Z,]*,[A-Z]$"}
+            "valuesrules": {"type": "string", "regex": "^[A-Z,]*[A-Z]$"}
         }
     },
     "scelteB": {
@@ -87,7 +87,7 @@ GROUP_YAML_SCHEMA = {
         "schema":{
             "type": "dict",
             "keysrules": {"type": "string", "regex": "^[A-Z]{1,1}$"},
-            "valuesrules": {"type": "string", "regex": "^[A-Z,]*,[A-Z]$"}
+            "valuesrules": {"type": "string", "regex": "^[A-Z,]*[A-Z]$"}
         }
     }
 }
@@ -97,7 +97,7 @@ GROUP_YAML_SCHEMA = {
 
 # ### 3.1Utility functions
 
-# In[3]:
+# In[35]:
 
 
 def get_graph_data_uri(buffer):
@@ -123,7 +123,7 @@ def unpack_edges(data):
 
 # ### 3.2 Functions related to DOCUMENTS and DATA
 
-# In[4]:
+# In[36]:
 
 
 def load_yaml_file(yaml_file, yaml_schema, validator):
@@ -267,7 +267,7 @@ def generate_yaml_group_imputs(doc_data, prefix):
 
 # ### 3.3 Functions related to Social Network Analysis
 
-# In[5]:
+# In[37]:
 
 
 def get_networks(edges, anonymize_nodes):
@@ -389,14 +389,14 @@ def get_network_stats(G):
 
 # ## 4. GENERATE
 
-# In[6]:
+# In[38]:
 
 
 # init jinja environment
 e = jn.Environment(loader=jn.FileSystemLoader(TEMPLATES_PATH))
 
 
-# In[7]:
+# In[39]:
 
 
 # init list
@@ -424,14 +424,14 @@ else:
     get_ipython().system('jupyter nbconvert abgrid.ipynb --to python --output "abgrid.py"')
     # set files
     files = (
-        "21_concorso_mlli_interni.yaml",
-        [ f"gruppo{g}.yaml" for g in [2,3,6,8] ]
+        "periti_selettori.yaml",
+        [ "psa_gruppo_2.yaml" ]
     );
     # set prefix
-    prefix = "mlli_interni_21"
+    prefix = "psas"
 
 
-# In[8]:
+# In[40]:
 
 
 # notify user
@@ -479,12 +479,6 @@ else:
         else:
             # notify user
             print(report_errors)
-
-
-# In[17]:
-
-
-len(set([1,2]).symmetric_difference(set([1,2,3])))>0
 
 
 # In[ ]:
