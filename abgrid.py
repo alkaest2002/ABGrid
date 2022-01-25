@@ -7,7 +7,7 @@
 
 # ## 1. IMPORTS
 
-# In[33]:
+# In[9]:
 
 
 # imports
@@ -19,7 +19,6 @@ import argparse
 import json
 import datetime
 import yaml
-import cerberus
 import string
 import random
 import numpy as np
@@ -32,7 +31,6 @@ import jinja2 as jn
 from pathlib import Path
 from base64 import b64encode
 from cerberus import Validator
-from weasyprint import HTML
 
 # customize matplotlib
 matplotlib.rc('font', **{'size' : 8})
@@ -41,7 +39,7 @@ matplotlib.use("Agg")
 
 # ## 2. CONSTANTS
 
-# In[34]:
+# In[10]:
 
 
 # folder paths
@@ -79,7 +77,7 @@ GROUP_YAML_SCHEMA = {
         "schema":{
             "type": "dict",
             "keysrules": {"type": "string", "regex": "^[A-Z]{1,1}$"},
-            "valuesrules": {"type": "string", "regex": "^[A-Z,]*[A-Z]$"}
+            "valuesrules": {"type": "string", "regex": "^([A-Z]{1,1},)*[A-Z]$"}
         }
     },
     "scelteB": {
@@ -87,7 +85,7 @@ GROUP_YAML_SCHEMA = {
         "schema":{
             "type": "dict",
             "keysrules": {"type": "string", "regex": "^[A-Z]{1,1}$"},
-            "valuesrules": {"type": "string", "regex": "^[A-Z,]*[A-Z]$"}
+            "valuesrules": {"type": "string", "regex": "^([A-Z]{1,1},)*[A-Z]$"}
         }
     }
 }
@@ -97,7 +95,7 @@ GROUP_YAML_SCHEMA = {
 
 # ### 3.1Utility functions
 
-# In[35]:
+# In[11]:
 
 
 def get_graph_data_uri(buffer):
@@ -123,7 +121,7 @@ def unpack_edges(data):
 
 # ### 3.2 Functions related to DOCUMENTS and DATA
 
-# In[36]:
+# In[12]:
 
 
 def load_yaml_file(yaml_file, yaml_schema, validator):
@@ -232,7 +230,7 @@ def get_report_data(conf_file, conf_yaml_schema, group_file, group_yaml_schema, 
         # return None and validation errors
         return (None, validation_errors)
 
-def generate_pdf_from_template(doc_type, doc_template, doc_data, path, prefix, suffix):
+def generate_doc_from_template(doc_type, doc_template, doc_data, path, prefix, suffix):
     # try to load sheet template
     try:
         # get doc template
@@ -241,8 +239,9 @@ def generate_pdf_from_template(doc_type, doc_template, doc_data, path, prefix, s
         rendered_tpl = tpl.render(doc_data);
         # build file name
         filename = re.sub("^_|_$", "", f"{prefix}_{doc_type}_{suffix}")
-        # save doc as pdf
-        HTML(string=rendered_tpl).write_pdf(path / f"{filename}.pdf")
+        # save doc as html
+        with open(_PATH / filename, "w") as file:
+            file.write(rendered_tpl)
     # catch exceptions
     except FileNotFoundError:
         return(None, f"Cannot locate {doc_type} template file")
@@ -267,7 +266,7 @@ def generate_yaml_group_imputs(doc_data, prefix):
 
 # ### 3.3 Functions related to Social Network Analysis
 
-# In[37]:
+# In[13]:
 
 
 def get_networks(edges, anonymize_nodes):
@@ -389,14 +388,14 @@ def get_network_stats(G):
 
 # ## 4. GENERATE
 
-# In[38]:
+# In[14]:
 
 
 # init jinja environment
 e = jn.Environment(loader=jn.FileSystemLoader(TEMPLATES_PATH))
 
 
-# In[39]:
+# In[15]:
 
 
 # init list
@@ -431,7 +430,7 @@ else:
     prefix = "psas"
 
 
-# In[40]:
+# In[16]:
 
 
 # notify user
@@ -449,7 +448,7 @@ if group_files == [None]:
         # notify user
         print("3. Generating doc(s)...")
         # generate sheet(s)
-        generate_pdf_from_template("sheet", SHEET_TPL, sheet_data, SHEETS_PATH, prefix, "")
+        generate_doc_from_template("sheet", SHEET_TPL, sheet_data, SHEETS_PATH, prefix, "")
         # generate group input doc(s)
         generate_yaml_group_imputs(sheet_data, prefix)
         # notify user
@@ -473,7 +472,7 @@ else:
             # notify user
             print("3. Generating report(s)...")
             # generate report(s)
-            generate_pdf_from_template("report", REPORT_TPL, report_data, REPORTS_PATH, prefix, group_file)
+            generate_doc_from_template("report", REPORT_TPL, report_data, REPORTS_PATH, prefix, group_file)
             # notify user
             print("4. Report(s) generated.")
         else:
