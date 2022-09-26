@@ -56,7 +56,7 @@
       </td>
     </tr>
     <tr>
-      <td>
+      <td style="vertical-align:top">
         {{ network_tabular(data) }}
       </td>
     </tr>
@@ -73,22 +73,18 @@
       * {
         margin: 0;
         padding: 0;
-        font-size: 1em;
+        font-size: 11pt;
         font-family: Arial, Helvetica, sans-serif;
+        font-size: 10pt;
         box-sizing: border-box
-      }
-
-      html {
-        font-size: 12pt;
       }
     </style>
     <style>
     	@page {
+        	position: relative;
     		width: 210mm;
 		    height: 297mm;
-        padding: 0;
-        margin: 20mm;
-        page-break-after: always;
+        	page-break-after: always;
       }
     	
       table {
@@ -165,6 +161,7 @@
       .graph-main {
         display: block;
         margin: auto;
+        height: 280px;
       }
 
       .report-table-tabular {
@@ -197,10 +194,10 @@
       }
 
       .footer {
-        position: absolute;
-        bottom: -20px;
-        font-size: .8em;
-        color: #555;
+        position: relative;
+        top: 40px;
+        font-size: 8pt !important;
+        color: #acacac;
         text-align: justify;
       }
 

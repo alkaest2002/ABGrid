@@ -7,7 +7,7 @@
 
 # ## 1. IMPORTS
 
-# In[9]:
+# In[65]:
 
 
 # imports
@@ -15,6 +15,7 @@ import sys
 import os
 import io
 import re
+import requests
 import argparse
 import json
 import datetime
@@ -28,9 +29,11 @@ import matplotlib
 import matplotlib.pyplot as plt
 import jinja2 as jn
 
+
 from pathlib import Path
 from base64 import b64encode
 from cerberus import Validator
+from weasyprint import HTML
 
 # customize matplotlib
 matplotlib.rc('font', **{'size' : 8})
@@ -39,7 +42,7 @@ matplotlib.use("Agg")
 
 # ## 2. CONSTANTS
 
-# In[10]:
+# In[66]:
 
 
 # folder paths
@@ -93,9 +96,9 @@ GROUP_YAML_SCHEMA = {
 
 # ## 3. FUNCTIONS
 
-# ### 3.1Utility functions
+# ### 3.1 Utility functions
 
-# In[11]:
+# In[67]:
 
 
 def get_graph_data_uri(buffer):
@@ -121,7 +124,7 @@ def unpack_edges(data):
 
 # ### 3.2 Functions related to DOCUMENTS and DATA
 
-# In[12]:
+# In[68]:
 
 
 def load_yaml_file(yaml_file, yaml_schema, validator):
@@ -187,7 +190,8 @@ def get_report_data(conf_file, conf_yaml_schema, group_file, group_yaml_schema, 
     # if configuration data was correctly loaded
     if conf_yaml_data != None:
         # try to load group data
-        group_yaml_data, validation_errors =            load_yaml_file(DATA_PATH / group_file, group_yaml_schema, validator)
+        group_yaml_data, validation_errors =\
+            load_yaml_file(DATA_PATH / group_file, group_yaml_schema, validator)
         # if group data was correctly loaded
         if group_yaml_data != None:  
             # init report data
@@ -238,19 +242,22 @@ def generate_doc_from_template(doc_type, doc_template, doc_data, path, prefix, s
         # render doc
         rendered_tpl = tpl.render(doc_data);
         # build file name
-        filename = re.sub("^_|_$", "", f"{prefix}_{doc_type}_{suffix}")
+        filename_html = re.sub("^_|_$", "", f"{prefix}_{doc_type}_{suffix}.html")
+        filename_pdf = re.sub("^_|_$", "", f"{prefix}_{doc_type}_{suffix}.pdf")
+        # save doc as pdf
+        HTML(string=rendered_tpl).write_pdf(path / filename_pdf)
         # save doc as html
-        with open(_PATH / filename, "w") as file:
-            file.write(rendered_tpl)
+        # with open(path / filename_html, "w") as file: file.write(rendered_tpl)
     # catch exceptions
     except FileNotFoundError:
         return(None, f"Cannot locate {doc_type} template file")
     
-def generate_yaml_group_imputs(doc_data, prefix):
+def generate_yaml_group_inputs(doc_data, prefix):
     # try to load sheet template
     try:
         # get doc template
         tpl = e.get_template(GROUP_TPL)
+        # loop thorugh groups
         for g in doc_data["groups"]:
             # render doc
             rendered_tpl = re.sub("^\s*\n$ ","",tpl.render(doc_data | { "groupId": g}));
@@ -266,7 +273,7 @@ def generate_yaml_group_imputs(doc_data, prefix):
 
 # ### 3.3 Functions related to Social Network Analysis
 
-# In[13]:
+# In[69]:
 
 
 def get_networks(edges, anonymize_nodes):
@@ -291,7 +298,7 @@ def get_networks(edges, anonymize_nodes):
     # create netowrk A & netowrk B
     Ga, Gb = nx.DiGraph(edges_A), nx.DiGraph(edges_B)
     # create locations A & locations B
-    loca, locb = nx.spring_layout(Ga, k=.3, seed=42), nx.spring_layout(Gb, k=.3, seed=42)
+    loca, locb = nx.spring_layout(Ga, k=.5, seed=42), nx.spring_layout(Gb, k=.3, seed=42)
     # return networks and locations
     return ((Ga, loca), (Gb, locb))
 
@@ -388,14 +395,14 @@ def get_network_stats(G):
 
 # ## 4. GENERATE
 
-# In[14]:
+# In[70]:
 
 
 # init jinja environment
 e = jn.Environment(loader=jn.FileSystemLoader(TEMPLATES_PATH))
 
 
-# In[15]:
+# In[75]:
 
 
 # init list
@@ -423,14 +430,14 @@ else:
     get_ipython().system('jupyter nbconvert abgrid.ipynb --to python --output "abgrid.py"')
     # set files
     files = (
-        "periti_selettori.yaml",
-        [ "psa_gruppo_2.yaml" ]
+        "2022_periti.yaml",
+       ["2022_periti_gruppo_1.yaml"]
     );
     # set prefix
-    prefix = "psas"
+    prefix = "periti2022"
 
 
-# In[16]:
+# In[74]:
 
 
 # notify user
@@ -443,6 +450,7 @@ if group_files == [None]:
     print(f"2. Loading file ({configuration_file})...")
     # load sheet(s) data
     sheet_data, sheet_errors = get_sheet_data(configuration_file, CONF_YAML_SCHEMA)
+    print(sheet_data)
     # if sheet(s) data was correctly loaded
     if (sheet_data != None):
         # notify user
@@ -450,7 +458,7 @@ if group_files == [None]:
         # generate sheet(s)
         generate_doc_from_template("sheet", SHEET_TPL, sheet_data, SHEETS_PATH, prefix, "")
         # generate group input doc(s)
-        generate_yaml_group_imputs(sheet_data, prefix)
+        generate_yaml_group_inputs(sheet_data, prefix)
         # notify user
         print("4. Doc(s) generated.")
     else:
@@ -478,6 +486,12 @@ else:
         else:
             # notify user
             print(report_errors)
+
+
+# In[ ]:
+
+
+
 
 
 # In[ ]:
