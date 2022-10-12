@@ -7,7 +7,7 @@
 
 # ## 1. IMPORTS
 
-# In[65]:
+# In[9]:
 
 
 # imports
@@ -42,7 +42,7 @@ matplotlib.use("Agg")
 
 # ## 2. CONSTANTS
 
-# In[66]:
+# In[10]:
 
 
 # folder paths
@@ -98,7 +98,7 @@ GROUP_YAML_SCHEMA = {
 
 # ### 3.1 Utility functions
 
-# In[67]:
+# In[11]:
 
 
 def get_graph_data_uri(buffer):
@@ -124,7 +124,7 @@ def unpack_edges(data):
 
 # ### 3.2 Functions related to DOCUMENTS and DATA
 
-# In[68]:
+# In[12]:
 
 
 def load_yaml_file(yaml_file, yaml_schema, validator):
@@ -273,7 +273,7 @@ def generate_yaml_group_inputs(doc_data, prefix):
 
 # ### 3.3 Functions related to Social Network Analysis
 
-# In[69]:
+# In[13]:
 
 
 def get_networks(edges, anonymize_nodes):
@@ -395,14 +395,14 @@ def get_network_stats(G):
 
 # ## 4. GENERATE
 
-# In[70]:
+# In[14]:
 
 
 # init jinja environment
 e = jn.Environment(loader=jn.FileSystemLoader(TEMPLATES_PATH))
 
 
-# In[75]:
+# In[15]:
 
 
 # init list
@@ -431,13 +431,13 @@ else:
     # set files
     files = (
         "2022_periti.yaml",
-       ["2022_periti_gruppo_1.yaml"]
+       ["periti2022_gruppo_1.yaml"]
     );
     # set prefix
     prefix = "periti2022"
 
 
-# In[74]:
+# In[18]:
 
 
 # notify user
@@ -445,7 +445,7 @@ print("1. Starting...")
 # unpack files
 configuration_file, group_files = files
 # generate sheet(s)
-if group_files == [None]:
+if group_files == []:
     # notify user
     print(f"2. Loading file ({configuration_file})...")
     # load sheet(s) data
@@ -480,7 +480,7 @@ else:
             # notify user
             print("3. Generating report(s)...")
             # generate report(s)
-            generate_doc_from_template("report", REPORT_TPL, report_data, REPORTS_PATH, prefix, group_file)
+            generate_doc_from_template("report", REPORT_TPL, report_data, REPORTS_PATH, "", group_file)
             # notify user
             print("4. Report(s) generated.")
         else:
