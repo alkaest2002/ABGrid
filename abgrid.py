@@ -7,7 +7,7 @@
 
 # ## 1. IMPORTS
 
-# In[9]:
+# In[26]:
 
 
 # imports
@@ -42,7 +42,7 @@ matplotlib.use("Agg")
 
 # ## 2. CONSTANTS
 
-# In[10]:
+# In[27]:
 
 
 # folder paths
@@ -98,7 +98,7 @@ GROUP_YAML_SCHEMA = {
 
 # ### 3.1 Utility functions
 
-# In[11]:
+# In[28]:
 
 
 def get_graph_data_uri(buffer):
@@ -124,7 +124,7 @@ def unpack_edges(data):
 
 # ### 3.2 Functions related to DOCUMENTS and DATA
 
-# In[12]:
+# In[29]:
 
 
 def load_yaml_file(yaml_file, yaml_schema, validator):
@@ -273,7 +273,7 @@ def generate_yaml_group_inputs(doc_data, prefix):
 
 # ### 3.3 Functions related to Social Network Analysis
 
-# In[13]:
+# In[30]:
 
 
 def get_networks(edges, anonymize_nodes):
@@ -395,14 +395,14 @@ def get_network_stats(G):
 
 # ## 4. GENERATE
 
-# In[14]:
+# In[31]:
 
 
 # init jinja environment
 e = jn.Environment(loader=jn.FileSystemLoader(TEMPLATES_PATH))
 
 
-# In[15]:
+# In[32]:
 
 
 # init list
@@ -431,13 +431,16 @@ else:
     # set files
     files = (
         "2022_periti.yaml",
-       ["periti2022_gruppo_1.yaml"]
+       [
+           "periti2022_gruppo_3.yaml",
+           "periti2022_gruppo_4.yaml"
+       ]
     );
     # set prefix
     prefix = "periti2022"
 
 
-# In[18]:
+# In[33]:
 
 
 # notify user
