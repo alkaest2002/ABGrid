@@ -7,7 +7,7 @@
 
 # ## 1. IMPORTS
 
-# In[26]:
+# In[14]:
 
 
 # imports
@@ -42,7 +42,7 @@ matplotlib.use("Agg")
 
 # ## 2. CONSTANTS
 
-# In[27]:
+# In[15]:
 
 
 # folder paths
@@ -98,7 +98,7 @@ GROUP_YAML_SCHEMA = {
 
 # ### 3.1 Utility functions
 
-# In[28]:
+# In[16]:
 
 
 def get_graph_data_uri(buffer):
@@ -124,7 +124,7 @@ def unpack_edges(data):
 
 # ### 3.2 Functions related to DOCUMENTS and DATA
 
-# In[29]:
+# In[17]:
 
 
 def load_yaml_file(yaml_file, yaml_schema, validator):
@@ -203,7 +203,7 @@ def get_report_data(conf_file, conf_yaml_schema, group_file, group_yaml_schema, 
             report_data["gb_question"] = conf_yaml_data["domandaB"]
             report_data["edges_a"] = unpack_edges(group_yaml_data["scelteA"])
             report_data["edges_b"] = unpack_edges(group_yaml_data["scelteB"])
-            report_data["year"] = datetime.datetime.utcnow().year
+            report_data["year"] = datetime.datetime.now(datetime.UTC).year
             # get nodes identifiers
             nodes_A = set(sum(map(list, report_data["edges_a"]), []))
             nodes_B = set(sum(map(list, report_data["edges_b"]), []))
@@ -260,7 +260,7 @@ def generate_yaml_group_inputs(doc_data, prefix):
         # loop thorugh groups
         for g in doc_data["groups"]:
             # render doc
-            rendered_tpl = re.sub("^\s*\n$ ","",tpl.render(doc_data | { "groupId": g}));
+            rendered_tpl = re.sub("^\\s*\\n$ ","",tpl.render(doc_data | { "groupId": g}));
             # remove blank lones
             rendered_tpl ="\n".join([ line for line in rendered_tpl.split("\n") if len(line)>0])
             # save doc as yaml
@@ -273,7 +273,7 @@ def generate_yaml_group_inputs(doc_data, prefix):
 
 # ### 3.3 Functions related to Social Network Analysis
 
-# In[30]:
+# In[18]:
 
 
 def get_networks(edges, anonymize_nodes):
@@ -395,14 +395,14 @@ def get_network_stats(G):
 
 # ## 4. GENERATE
 
-# In[31]:
+# In[19]:
 
 
 # init jinja environment
 e = jn.Environment(loader=jn.FileSystemLoader(TEMPLATES_PATH))
 
 
-# In[32]:
+# In[20]:
 
 
 # init list
@@ -430,17 +430,16 @@ else:
     get_ipython().system('jupyter nbconvert abgrid.ipynb --to python --output "abgrid.py"')
     # set files
     files = (
-        "2022_periti.yaml",
+        "2023_rivolto.yaml",
        [
-           "periti2022_gruppo_3.yaml",
-           "periti2022_gruppo_4.yaml"
+           "rivolto23_gruppo_1.yaml",
        ]
     );
     # set prefix
-    prefix = "periti2022"
+    prefix = "rivolto23"
 
 
-# In[33]:
+# In[21]:
 
 
 # notify user
