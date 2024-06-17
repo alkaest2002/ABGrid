@@ -1,0 +1,26 @@
+# ID del gruppo (numero)
+IDGruppo: 3
+# indica le scelte di ogni partecipante
+# rispetta gli spazi e i trattini
+# es. - A: B,C
+scelteA:
+  - A: G
+  - B: C,D
+  - C: B,E
+  - D: C,H
+  - E: A,C
+  - F: D,E
+  - G: A,C
+  - H: B,E
+# indica le scelte di ogni partecipante
+# rispetta gli spazi e i trattini
+# es. - A: B,C
+scelteB:
+  - A: F
+  - B: A,F
+  - C: F
+  - D: F,G
+  - E: G
+  - F: G,H
+  - G: H
+  - H: F

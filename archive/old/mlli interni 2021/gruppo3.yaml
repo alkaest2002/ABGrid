@@ -1,0 +1,19 @@
+IDGruppo: 3
+scelteA:
+  - A: D,H
+  - B: E,F
+  - C: B,D
+  - D: F,H
+  - E: B,F
+  - F: B,E
+  - G: D,H
+  - H: D,G
+scelteB:
+  - A: B,E
+  - B: D,H
+  - C: A,H
+  - D: C,E
+  - E: G,H
+  - F: D,G
+  - G: B,E
+  - H: E,F
