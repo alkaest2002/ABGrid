@@ -4,11 +4,11 @@
   </span>
 {% endmacro %}
 
-{% macro network_tabular(data) %}
+{% macro network_tabular(type, data) %}
   <table class="report-table-tabular">
     <tr>
       <th>ID</th>
-      <th>SCELTE</th>
+      <th>{% if type == "A" %}SCELTE{% else %}RIFIUTI{% endif %}</th>
       <th>IC</th>
       <th>PR</th>
       <th>BC</th>
@@ -57,7 +57,7 @@
     </tr>
     <tr>
       <td style="vertical-align:top">
-        {{ network_tabular(data) }}
+        {{ network_tabular(type, data) }}
       </td>
     </tr>
   </table>
