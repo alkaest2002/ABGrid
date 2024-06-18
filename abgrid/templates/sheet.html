@@ -109,16 +109,16 @@
           </div>
           <div class="question">
             <p class="question-a"><b>A. {{ ga_question }}</b></p>
-            <p class="question-hint">{{ ga_question_hint}}</p>
+            <p class="question-hint">{{ ga_question_hint }}</p>
             {{ get_likert(likert) }}
           </div>
           <div class="question">
             <p class="question-b"><b>B. {{ gb_question }}</b></p>
-            <p class="question-hint">{{ gb_question_hint}}</p>
+            <p class="question-hint">{{ gb_question_hint }}</p>
             {{ get_likert(likert) }}
           </div>
           <div class="barcode-wrapper">
-            <p class="barcode">{{ get_barcode(group,participant) }}</p>
+            <p class="barcode">{{ get_barcode(group, participant) }}</p>
           </div>
         </div>
       {% endfor %}
