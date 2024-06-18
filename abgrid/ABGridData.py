@@ -12,7 +12,7 @@ class ABGridData():
       self.configuration_file_path = Path(f"{project_name}.yaml")
       self.groups_file_paths = Path(
           "./").glob(f"{project_name}_gruppo_*.yaml")
-      self.prefix = self.configuration_file_path.stem
+      self.prefix = project_name
       self.yaml_loader = yaml_loader
 
     def get_answersheets_data(self):
