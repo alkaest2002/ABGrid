@@ -144,7 +144,7 @@ class ABGridNetwork():
             pd.Series(nx.closeness_centrality(G), name="cc").rank(
                 method="dense", ascending=False),
             pd.Series(
-                {n: (len(x)-1)/len(G.nodes()) for n, x in dict(nx.all_pairs_shortest_path_length(G)).items()}, name="or"
+                {n: (len(x)-0)/len(G.nodes()) for n, x in dict(nx.all_pairs_shortest_path_length(G)).items()}, name="or"
             ),
             pd.Series(no_indegree, name="ni")
         ], axis=1)
