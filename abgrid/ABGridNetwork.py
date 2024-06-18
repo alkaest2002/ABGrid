@@ -4,7 +4,6 @@ import pandas as pd
 import networkx as nx
 import matplotlib
 import matplotlib.pyplot as plt
-import jinja2 as jinja
 
 from pathlib import Path
 from base64 import b64encode
@@ -14,10 +13,6 @@ from weasyprint import HTML
 # customize matplotlib
 matplotlib.rc('font', **{'size': 8})
 matplotlib.use("Agg")
-
-# set jinja
-jinja_env = jinja.Environment(loader=jinja.FileSystemLoader("./templates"))
-
 
 class ABGridNetwork():
 

@@ -3,6 +3,7 @@ import yaml
 from pathlib import Path
 from cerberus import Validator, DocumentError, SchemaError
 
+
 class ABGridYAML():
 
     def __init__(self):
@@ -41,12 +42,12 @@ class ABGridYAML():
             }
         }
 
-    def validate(self, type, data):
+    def validate(self, yaml_type, yaml_data):
         # choose type of validation schema
-        schema = self.conf_file_schema if type == "configuration" else self.group_file_schema
+        yaml_schema = self.conf_file_schema if yaml_type == "configuration" else self.group_file_schema
         try:
             # validate data
-            self.validator.validate(data, schema)
+            self.validator.validate(yaml_data, yaml_schema)
             # return validation errors dict (if validation is paddes dict is empty)
             return self.validator.errors
         # catch exceptions

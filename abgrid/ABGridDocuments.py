@@ -4,7 +4,6 @@ import string
 from pathlib import Path
 from weasyprint import HTML
 
-
 class ABGridDocuments():
 
     def __init__(self, abgrid_data, jinja_env):
@@ -86,7 +85,7 @@ class ABGridDocuments():
 
     @printer_decorator("sheets")
     def generate_answer_sheets(self):
-        sheets_data, sheets_errors = self.abgrid_data .get_data("sheets")
+        sheets_data, sheets_errors = self.abgrid_data.get_data("sheets")
         if sheets_data:
             self.render_pdf("sheet", sheets_data, "sheet.html",
                             self.abgrid_data.prefix, "")
