@@ -63,8 +63,7 @@ class ABGridData():
                 report_data = dict()
                 # update report data
                 report_data["assessment_info"] = yaml_data["titolo"]
-                report_data["group_id"] = f'gruppo {
-                    group_yaml_data["IDGruppo"]}'
+                report_data["group_id"] = group_yaml_data["IDGruppo"]
                 report_data["ga_question"] = yaml_data["domandaA"]
                 report_data["gb_question"] = yaml_data["domandaB"]
                 report_data["edges_a"] = ntw.edges_a

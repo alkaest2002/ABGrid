@@ -96,7 +96,7 @@ class ABGridDocuments():
     @printer_decorator("reports")
     def generate_reports(self):
         # loop through groups
-        for group_id, group_file in enumerate(self.abgrid_data.groups_file_paths, 1):
+        for group_file in self.abgrid_data.groups_file_paths:
             # load report(s) data
             report_data, report_errors = self.abgrid_data.get_data(
                 "reports", group_file)
@@ -104,7 +104,7 @@ class ABGridDocuments():
             if (report_data != None):
                 # generate report(s)
                 self.render_pdf("report", report_data,
-                                "report.html", self.abgrid_data.prefix, f"gruppo_{group_id}")
+                                "report.html", self.abgrid_data.prefix, f"gruppo_{report_data['group_id']}")
             else:
                 # notify user
                 print(report_errors)
