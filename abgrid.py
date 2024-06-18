@@ -11,7 +11,7 @@ parser = argparse.ArgumentParser(prog="ABGrid")
 parser.add_argument("-a", "--action", required=True, choices=["init", "sheets", "reports"])
 parser.add_argument("-p", "--project_name", required=True,)
 parser.add_argument("-g", "--n_groups", type=int, choices=range(1, 51))
-parser.add_argument("-m", "--n_members_per_group", type=int, choices=range(1, 16))
+parser.add_argument("-m", "--n_members_per_group", type=int, choices=range(1, 21))
 args = parser.parse_args()
 
 if args.action == "init":
