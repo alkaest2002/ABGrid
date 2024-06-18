@@ -1,6 +1,6 @@
 import yaml
 import re
-
+import string
 from pathlib import Path
 from weasyprint import HTML
 
@@ -25,7 +25,7 @@ class ABGridDocuments():
     @printer_decorator("configuration file")
     def generate_configuration_file(project_name, n_groups, n_members_per_group, jinja_env):
         try:
-            with open(Path("./templates/") / "configuration_file.yaml", 'r') as file:
+            with open(Path("./abgrid/templates/") / "configuration_file.yaml", 'r') as file:
                 conf_file = yaml.safe_load(file)
             conf_file["titolo"] = project_name
             conf_file["numero_gruppi"] = n_groups
