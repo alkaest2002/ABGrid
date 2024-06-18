@@ -6,6 +6,7 @@ from abgrid.ABGridYAML import ABGridYAML
 
 from pathlib import Path
 
+
 class ABGridData():
 
     def __init__(self, project_name, yaml_loader):
@@ -56,7 +57,7 @@ class ABGridData():
             # under this condition
             if not ntw.validate_nodes():
                 # return None and errors
-                return (None, "Letters are not correct")
+                return (None, "Choices from grups files are not correct.")
             # compute networks
             ntw.compute_networks()
             # init report data

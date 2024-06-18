@@ -14,6 +14,7 @@ from weasyprint import HTML
 matplotlib.rc('font', **{'size': 8})
 matplotlib.use("Agg")
 
+
 class ABGridNetwork():
 
     def __init__(self, edges):

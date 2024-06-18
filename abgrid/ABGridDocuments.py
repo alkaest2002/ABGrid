@@ -32,9 +32,9 @@ class ABGridDocuments():
             with open(f"{project_name}.yaml", 'w') as file:
                 yaml.dump(conf_file, file, sort_keys=False)
         except yaml.YAMLError:
-            print("Error while writing configuration file")
+            print("Error while writing configuration file.")
         except FileNotFoundError:
-            print("Cannot locate configuration file template file")
+            print("Cannot locate configuration file template file.")
 
     @staticmethod
     @printer_decorator("groups")
