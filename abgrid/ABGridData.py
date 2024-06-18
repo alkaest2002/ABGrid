@@ -1,9 +1,10 @@
 import datetime
 import yaml
 import string
-import abgrid.ABGridNetwork as ABGridNetwork
+from abgrid.ABGridNetwork import ABGridNetwork
 
 from pathlib import Path
+
 
 class ABGridData():
 

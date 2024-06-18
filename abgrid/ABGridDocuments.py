@@ -1,7 +1,9 @@
 import yaml
+import re
 
 from pathlib import Path
 from weasyprint import HTML
+
 
 class ABGridDocuments():
 
@@ -71,14 +73,12 @@ class ABGridDocuments():
             # render doc
             rendered_tpl = tpl.render(doc_data)
             # build file name
-            filename_pdf = re.sub("^_|_$", "", f"{doc_prefix}_{
-                                  doc_type}_{doc_suffix}.pdf")
+            filename = re.sub("^_|_$", "", f"{doc_prefix}_{doc_type}_{doc_suffix}")
             # save doc as pdf
-            HTML(string=rendered_tpl).write_pdf(filename_pdf)
+            HTML(string=rendered_tpl).write_pdf(f"{filename}.pdf")
             # FOR DEBUGGING
             # -----------------------------------------------------------------------------------
-            # filename_html = re.sub("^_|_$", "", f"{doc_prefix}_{doc_type}_{doc_suffix}.html")
-            # with open(filename_html, "w") as file: file.write(rendered_tpl)
+            # with open(f"{filename}.html"", "w") as file: file.write(rendered_tpl)
             # -----------------------------------------------------------------------------------
         # catch exceptions
         except FileNotFoundError:
@@ -89,14 +89,14 @@ class ABGridDocuments():
         sheets_data, sheets_errors = self.abgrid_data .get_data("sheets")
         if sheets_data:
             self.render_pdf("sheet", sheets_data, "sheet.html",
-                            self.abgrid_data.prefix, '')
+                            self.abgrid_data.prefix, "")
         else:
             print(sheets_errors)
 
     @printer_decorator("reports")
     def generate_reports(self):
         # loop through groups
-        for group_file in self.abgrid_data.groups_file_paths:
+        for group_id, group_file in enumerate(self.abgrid_data.groups_file_paths, 1):
             # load report(s) data
             report_data, report_errors = self.abgrid_data.get_data(
                 "reports", group_file)
@@ -104,7 +104,7 @@ class ABGridDocuments():
             if (report_data != None):
                 # generate report(s)
                 self.render_pdf("report", report_data,
-                                "report.html", "", group_file)
+                                "report.html", self.abgrid_data.prefix, f"gruppo_{group_id}")
             else:
                 # notify user
                 print(report_errors)
