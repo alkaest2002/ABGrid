@@ -18,7 +18,9 @@ class ABGridDocuments():
             def wrapper(*args, **kwargs):
                 print(f"Generating {argument} file(s).")
                 try:
-                    return function(*args, **kwargs)
+                    result = function(*args, **kwargs)
+                    print(f"{argument} file(s) generated.")
+                    return result
                 except Exception as error:
                     print(f"Error while generating {argument} file(s).", "\n", error)
             return wrapper
@@ -38,8 +40,6 @@ class ABGridDocuments():
         # write yaml data to file
         with open(f"{project_name}.yaml", 'w') as fout:
             yaml.dump(yaml_data, fout, sort_keys=False)
-        # notify
-        print("Project file generated.")
 
     @staticmethod
     @notify_decorator("group")
@@ -63,8 +63,6 @@ class ABGridDocuments():
             groups_files.append(group_file)
             with open(group_file, "w") as file:
                 file.write(rendered_tpl)
-        # notify
-        print("Group file(s) generated.")
 
     @staticmethod
     def init_files(*args):
@@ -97,8 +95,6 @@ class ABGridDocuments():
         # generate sheets
         self.render_pdf("sheet", sheets_data, "sheet.html",
                         self.abgrid_data.prefix, "")
-        # notify
-        print("Sheet file(s) generated.")
 
     @notify_decorator("report")
     def generate_reports(self):
@@ -113,5 +109,3 @@ class ABGridDocuments():
             # generate report(s)
             self.render_pdf("report", report_data,
                             "report.html", self.abgrid_data.prefix, f"gruppo_{report_data['group_id']}")
-        # notify
-        print("Report file(s) generated.")
