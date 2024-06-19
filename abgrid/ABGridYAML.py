@@ -11,7 +11,7 @@ class ABGridYAML():
         self.conf_file_schema = {
             "titolo": {"type": "string"},
             "numero_gruppi": {"type": "integer", "min": 1, "max": 20},
-            "numero_partecipanti_per_gruppo": {"type": "integer", "min": 3, "max": 12},
+            "numero_partecipanti_per_gruppo": {"type": "integer", "min": 3, "max": 15},
             "consegna": {"type": "string"},
             "domandaA": {"type": "string"},
             "domandaA_scelte": {"type": "string"},

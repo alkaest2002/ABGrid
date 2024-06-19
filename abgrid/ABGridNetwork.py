@@ -23,8 +23,8 @@ class ABGridNetwork():
 
         self.edges = edges
         self.edges_a = self.unpack_edges(edges[0])
-        self.nodes_a = set(sum(map(list, edges[0]), []))
         self.edges_b = self.unpack_edges(edges[1])
+        self.nodes_a = set(sum(map(list, edges[0]), []))
         self.nodes_b = set(sum(map(list, edges[1]), []))
 
         self.Ga_info = None
@@ -49,6 +49,7 @@ class ABGridNetwork():
         return unpacked_edges
 
     def validate_nodes(self):
+        # determine whethere nodes are correct 
         return len(self.nodes_a.symmetric_difference(self.nodes_b)) == 0
 
     def compute_networks(self):

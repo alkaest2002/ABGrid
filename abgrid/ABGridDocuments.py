@@ -1,8 +1,10 @@
 import yaml
 import re
 import string
+import json
 from pathlib import Path
 from weasyprint import HTML
+
 
 class ABGridDocuments():
 
@@ -14,36 +16,33 @@ class ABGridDocuments():
     def notify_decorator(argument):
         def decorator(function):
             def wrapper(*args, **kwargs):
-                print(f"generating {argument}")
-                result = function(*args, **kwargs)
-                print(f"{argument} generated!")
-                return result
+                print(f"Generating {argument} file(s).")
+                try:
+                    return function(*args, **kwargs)
+                except Exception as error:
+                    print(f"Error while generating {argument} file(s).", "\n", error)
             return wrapper
         return decorator
 
     @staticmethod
-    @notify_decorator("configuration file")
+    @notify_decorator("project")
     def generate_configuration_file(project_name, n_groups, n_members_per_group, jinja_env):
-        try:
-            # open configuration file template
-            with open(Path("./abgrid/templates/") / "configuration_file.yaml", 'r') as fin:
-                # load yaml data
-                yaml_data = yaml.safe_load(fin)
-                # update yaml data
-                yaml_data["titolo"] = project_name
-                yaml_data["numero_gruppi"] = n_groups
-                yaml_data["numero_partecipanti_per_gruppo"] = n_members_per_group
-                # write yaml data to file
-                with open(f"{project_name}.yaml", 'w') as fout:
-                    yaml.dump(yaml_data, fout, sort_keys=False)
-        # catche exceptions
-        except yaml.YAMLError:
-            print("Error while writing configuration file.")
-        except FileNotFoundError:
-            print("Cannot locate configuration file template file.")
+        # open configuration file template
+        with open(Path("./abgrid/templates/") / "configuration_file.yaml", 'r') as fin:
+            # load yaml data
+            yaml_data = yaml.safe_load(fin)
+        # update yaml data
+        yaml_data["titolo"] = project_name
+        yaml_data["numero_gruppi"] = n_groups
+        yaml_data["numero_partecipanti_per_gruppo"] = n_members_per_group
+        # write yaml data to file
+        with open(f"{project_name}.yaml", 'w') as fout:
+            yaml.dump(yaml_data, fout, sort_keys=False)
+        # notify
+        print("Project file generated.")
 
     @staticmethod
-    @notify_decorator("groups")
+    @notify_decorator("group")
     def generate_group_inputs(project_name, number_of_groups, number_of_members_per_group, jinja_env):
         # init group files list
         groups_files = []
@@ -64,6 +63,8 @@ class ABGridDocuments():
             groups_files.append(group_file)
             with open(group_file, "w") as file:
                 file.write(rendered_tpl)
+        # notify
+        print("Group file(s) generated.")
 
     @staticmethod
     def init_files(*args):
@@ -72,50 +73,45 @@ class ABGridDocuments():
         ABGridDocuments.generate_group_inputs(*args)
 
     def render_pdf(self, doc_type, doc_data, doc_template, doc_prefix, doc_suffix):
-        # try to load sheet template
-        try:
-            # get template
-            tpl = self.jinja_env.get_template(doc_template)
-            # render template
-            rendered_tpl = tpl.render(doc_data)
-            # build file name
-            filename = re.sub("^_|_$", "", f"{doc_prefix}_{doc_type}_{doc_suffix}")
-            # save rendered template as pdf
-            HTML(string=rendered_tpl).write_pdf(f"{filename}.pdf")
-            # -----------------------------------------------------------------------------------
-            # FOR DEBUGGING PURPOSES
-            # -----------------------------------------------------------------------------------
-            # with open(f"{filename}.html"", "w") as file: file.write(rendered_tpl)
-            # -----------------------------------------------------------------------------------
-        # catch exceptions
-        except FileNotFoundError:
-            return (None, f"Cannot locate {doc_type} template file")
+        # get template
+        tpl = self.jinja_env.get_template(doc_template)
+        # render template
+        rendered_tpl = tpl.render(doc_data)
+        # build file name
+        filename = re.sub("^_|_$", "", f"{doc_prefix}_{doc_type}_{doc_suffix}")
+        # save rendered template as pdf
+        HTML(string=rendered_tpl).write_pdf(f"{filename}.pdf")
+        # -----------------------------------------------------------------------------------
+        # FOR DEBUGGING PURPOSES
+        # -----------------------------------------------------------------------------------
+        # with open(f"{filename}.html"", "w") as file: file.write(rendered_tpl)
+        # -----------------------------------------------------------------------------------
 
-    @notify_decorator("sheets")
+    @notify_decorator("sheet")
     def generate_answer_sheets(self):
         # get sheets data
         sheets_data, sheets_errors = self.abgrid_data.get_data("sheets")
-        # if sheets data was correctly loaded
-        if sheets_data != None:
-            # generate sheets
-            self.render_pdf("sheet", sheets_data, "sheet.html",
-                            self.abgrid_data.prefix, "")
-        else:
-            # notify user
-            print(sheets_errors)
+        # on error
+        if sheets_errors:
+            raise Exception(sheets_errors)
+        # generate sheets
+        self.render_pdf("sheet", sheets_data, "sheet.html",
+                        self.abgrid_data.prefix, "")
+        # notify
+        print("Sheet file(s) generated.")
 
-    @notify_decorator("reports")
+    @notify_decorator("report")
     def generate_reports(self):
         # loop through groups
         for group_file in self.abgrid_data.groups_file_paths:
             # load report(s) data
             report_data, report_errors = self.abgrid_data.get_data(
                 "reports", group_file)
-            # if report(s) data was correctly loaded
-            if report_data != None:
-                # generate report(s)
-                self.render_pdf("report", report_data,
-                                "report.html", self.abgrid_data.prefix, f"gruppo_{report_data['group_id']}")
-            else:
-                # notify user
-                print(report_errors)
+            # on error
+            if report_errors:
+                raise Exception(report_errors)
+            # generate report(s)
+            self.render_pdf("report", report_data,
+                            "report.html", self.abgrid_data.prefix, f"gruppo_{report_data['group_id']}")
+        # notify
+        print("Report file(s) generated.")

@@ -17,10 +17,10 @@ class ABGridData():
       self.yaml_loader = yaml_loader
 
     def get_answersheets_data(self):
-      # load configuration data
+      # load project data
       yaml_data, validation_errors = self.yaml_loader.load_yaml(
           "configuration", self.configuration_file_path)
-      # if configuration data was correctly loaded
+      # if project data was correctly loaded
       if yaml_data != None:
           # init sheet data dict
           data = dict()
@@ -41,23 +41,23 @@ class ABGridData():
           return (None, validation_errors)
 
     def get_report_data(self, group_file_path):
-        # try to load configuration data
+        # try to load project data
         yaml_data, conf_validation_errors = self.yaml_loader.load_yaml(
             "configuration", self.configuration_file_path)
-        # if configuration data was correctly loaded
+        # if project data was correctly loaded
         if yaml_data != None:
           # try to load group data
           group_yaml_data, group_validation_errors = self.yaml_loader.load_yaml(
               "group", group_file_path)
           # if group data was correctly loaded
           if group_yaml_data != None:
-            # init networker
+            # init ABGridNetwork class
             ntw = ABGridNetwork(
                 (group_yaml_data["scelteA"], group_yaml_data["scelteB"]))
-            # under this condition
+            # in case of nodes mismatch
             if not ntw.validate_nodes():
                 # return None and errors
-                return (None, "Choices from grups files are not correct.")
+                return (None, f"Choices within group {group_file_path.stem} are not correct.")
             # compute networks
             ntw.compute_networks()
             # init report data
