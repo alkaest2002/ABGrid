@@ -9,17 +9,17 @@ from pathlib import Path
 
 class ABGridData():
 
-    def __init__(self, project_name, yaml_loader):
-      self.configuration_file_path = Path(f"{project_name}.yaml")
-      self.groups_file_paths = Path(
-          "./").glob(f"{project_name}_gruppo_*.yaml")
-      self.prefix = project_name
+    def __init__(self, project, yaml_loader):
+      self.project = project
+      self.project_filepath = Path(f"{project}.yaml")
+      self.groups_filepaths = Path(
+          "./").glob(f"{project}_gruppo_*.yaml")
       self.yaml_loader = yaml_loader
 
     def get_answersheets_data(self):
       # load project data
       yaml_data, validation_errors = self.yaml_loader.load_yaml(
-          "configuration", self.configuration_file_path)
+          "project", self.project_filepath)
       # if project data was correctly loaded
       if yaml_data != None:
           # init sheet data dict
@@ -40,15 +40,15 @@ class ABGridData():
           # return None and validation errors
           return (None, validation_errors)
 
-    def get_report_data(self, group_file_path):
+    def get_report_data(self, group_filepath):
         # try to load project data
-        yaml_data, conf_validation_errors = self.yaml_loader.load_yaml(
-            "configuration", self.configuration_file_path)
+        yaml_data, project_validation_errors = self.yaml_loader.load_yaml(
+            "project", self.project_filepath)
         # if project data was correctly loaded
         if yaml_data != None:
           # try to load group data
           group_yaml_data, group_validation_errors = self.yaml_loader.load_yaml(
-              "group", group_file_path)
+              "group", group_filepath)
           # if group data was correctly loaded
           if group_yaml_data != None:
             # init ABGridNetwork class
@@ -57,7 +57,7 @@ class ABGridData():
             # in case of nodes mismatch
             if not ntw.validate_nodes():
                 # return None and errors
-                return (None, f"Choices within group {group_file_path.stem} are not correct.")
+                return (None, f"Choices within group {group_yaml_data['IDGruppo']} file are not correct.")
             # compute networks
             ntw.compute_networks()
             # init report data
@@ -85,8 +85,4 @@ class ABGridData():
         # on validation error of configuration data
         else:
             # return None and validation errors
-            return (None, conf_validation_errors)
-
-    def get_data(self, type, *args):
-      # retrun sheets data of report data
-      return self.get_answersheets_data() if type == "sheets" else self.get_report_data(*args)
+            return (None, project_validation_errors)

@@ -1,7 +1,8 @@
 import yaml
 import re
 import string
-import json
+
+from abgrid.ABGridErrors import ValidationError
 from pathlib import Path
 from weasyprint import HTML
 
@@ -22,15 +23,16 @@ class ABGridDocuments():
                     print(f"{argument} file(s) generated.")
                     return result
                 except Exception as error:
-                    print(f"Error while generating {argument} file(s).", "\n", error)
+                    print(f"Error while generating {
+                          argument} file(s).", "\n", error)
             return wrapper
         return decorator
 
     @staticmethod
     @notify_decorator("project")
-    def generate_configuration_file(project_name, n_groups, n_members_per_group, jinja_env):
-        # open configuration file template
-        with open(Path("./abgrid/templates/") / "configuration_file.yaml", 'r') as fin:
+    def generate_project_file(project_name, n_groups, n_members_per_group, jinja_env):
+        # open project file template
+        with open(Path("./abgrid/templates/project.yaml"), 'r') as fin:
             # load yaml data
             yaml_data = yaml.safe_load(fin)
         # update yaml data
@@ -43,40 +45,46 @@ class ABGridDocuments():
 
     @staticmethod
     @notify_decorator("group")
-    def generate_group_inputs(project_name, number_of_groups, number_of_members_per_group, jinja_env):
+    def generate_group_inputs(project_name, n_groups, n_members_per_group, jinja_env):
         # init group files list
         groups_files = []
         # build letter list for members (i.e., 5 --> A,B,C,D,E)
-        members_per_group = string.ascii_uppercase[:number_of_members_per_group]
+        members_per_group = string.ascii_uppercase[:n_members_per_group]
         # get group template
         tpl = jinja_env.get_template("group.html")
         # loop thorugh groups
-        for group_id in range(1, number_of_groups+1):
+        for group_id in range(1, n_groups+1):
+            # set template data
+            tpl_data = dict(groupId=group_id, members=members_per_group)
             # render current group template
-            rendered_tpl = tpl.render(
-                dict(groupId=group_id, members=members_per_group))
+            rendered_tpl = tpl.render(tpl_data)
             # remove blank lines from rendered template
             rendered_tpl = "\n".join(
                 [line for line in rendered_tpl.split("\n") if len(line) > 0])
             # save current rendered to file
-            group_file = Path(f"{project_name}_gruppo_{group_id}.yaml")
-            groups_files.append(group_file)
-            with open(group_file, "w") as file:
+            group_file_path = Path(f"{project_name}_gruppo_{group_id}.yaml")
+            # append group_file_path to lost
+            groups_files.append(group_file_path)
+            # write group file to disk
+            with open(group_file_path, "w") as file:
                 file.write(rendered_tpl)
 
     @staticmethod
     def init_files(*args):
-        # generate configuration file and group files
-        ABGridDocuments.generate_configuration_file(*args)
+        # generate project file and group files
+        ABGridDocuments.generate_project_file(*args)
         ABGridDocuments.generate_group_inputs(*args)
 
-    def render_pdf(self, doc_type, doc_data, doc_template, doc_prefix, doc_suffix):
+    def render_pdf(self, doc_type, doc_data, doc_suffix):
+        # set template
+        doc_template = f"{doc_type}.html"
         # get template
         tpl = self.jinja_env.get_template(doc_template)
         # render template
         rendered_tpl = tpl.render(doc_data)
         # build file name
-        filename = re.sub("^_|_$", "", f"{doc_prefix}_{doc_type}_{doc_suffix}")
+        filename = re.sub("^_|_$", "", f"{self.abgrid_data.project}_{
+                          doc_type}_{doc_suffix}")
         # save rendered template as pdf
         HTML(string=rendered_tpl).write_pdf(f"{filename}.pdf")
         # -----------------------------------------------------------------------------------
@@ -87,25 +95,23 @@ class ABGridDocuments():
 
     @notify_decorator("sheet")
     def generate_answer_sheets(self):
-        # get sheets data
-        sheets_data, sheets_errors = self.abgrid_data.get_data("sheets")
+        # load sheet(s) data
+        sheets_data, sheets_errors = self.abgrid_data.get_answersheets_data()
         # on error
         if sheets_errors:
-            raise Exception(sheets_errors)
-        # generate sheets
-        self.render_pdf("sheet", sheets_data, "sheet.html",
-                        self.abgrid_data.prefix, "")
+            raise ValidationError(sheets_errors)
+        # render sheets
+        self.render_pdf("sheet", sheets_data, "")
 
     @notify_decorator("report")
     def generate_reports(self):
         # loop through groups
-        for group_file in self.abgrid_data.groups_file_paths:
-            # load report(s) data
-            report_data, report_errors = self.abgrid_data.get_data(
-                "reports", group_file)
+        for group_file in self.abgrid_data.groups_filepaths:
+            # load report data for current group
+            report_data, report_errors = self.abgrid_data.get_report_data(group_file)
             # on error
             if report_errors:
-                raise Exception(report_errors)
-            # generate report(s)
-            self.render_pdf("report", report_data,
-                            "report.html", self.abgrid_data.prefix, f"gruppo_{report_data['group_id']}")
+                raise ValidationError(report_errors)
+            # render report
+            self.render_pdf("report", report_data, f"gruppo_{
+                            report_data['group_id']}")

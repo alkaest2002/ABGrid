@@ -8,7 +8,7 @@ class ABGridYAML():
 
     def __init__(self):
         self.validator = Validator(required_all=True)
-        self.conf_file_schema = {
+        self.project_file_schema = {
             "titolo": {"type": "string"},
             "numero_gruppi": {"type": "integer", "min": 1, "max": 20},
             "numero_partecipanti_per_gruppo": {"type": "integer", "min": 3, "max": 15},
@@ -44,7 +44,7 @@ class ABGridYAML():
 
     def validate(self, yaml_type, yaml_data):
         # choose type of validation schema
-        yaml_schema = self.conf_file_schema if yaml_type == "configuration" else self.group_file_schema
+        yaml_schema = self.project_file_schema if yaml_type == "project" else self.group_file_schema
         try:
             # validate data
             self.validator.validate(yaml_data, yaml_schema)
