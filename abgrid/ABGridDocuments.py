@@ -1,16 +1,17 @@
 import yaml
 import re
 import string
+import jinja2
 
 from abgrid.ABGridErrors import ValidationError
 from pathlib import Path
 from weasyprint import HTML
 
-
 class ABGridDocuments():
 
-    def __init__(self, abgrid_data, jinja_env):
-        self.jinja_env = jinja_env
+    def __init__(self, abgrid_data):
+        self.jinja_env = jinja2.Environment(
+            loader=jinja2.FileSystemLoader(["./abgrid/templates", "./templates"]))
         self.abgrid_data = abgrid_data
 
     # decorator to add print messages
@@ -108,7 +109,8 @@ class ABGridDocuments():
         # loop through groups
         for group_file in self.abgrid_data.groups_filepaths:
             # load report data for current group
-            report_data, report_errors = self.abgrid_data.get_report_data(group_file)
+            report_data, report_errors = self.abgrid_data.get_report_data(
+                group_file)
             # on error
             if report_errors:
                 raise ValidationError(report_errors)
