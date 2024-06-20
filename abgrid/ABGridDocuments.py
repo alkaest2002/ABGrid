@@ -109,6 +109,9 @@ class ABGridDocuments(object):
     def generate_reports(self):
         # init report data object
         all_data = {}
+        # check if group file(s) are present, otherwise raise error
+        if len(list(self.abgrid_data.groups_filepaths)) == 0:
+            raise ValidationError(f"Group file(s) for {self.abgrid_data.project} are missing")
         # loop through groups
         for group_file in self.abgrid_data.groups_filepaths:
             # load report data for current group
