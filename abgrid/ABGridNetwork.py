@@ -5,7 +5,6 @@ import networkx as nx
 import matplotlib
 import matplotlib.pyplot as plt
 
-from functools import reduce
 from pathlib import Path
 from base64 import b64encode
 from cerberus import Validator, DocumentError, SchemaError
@@ -120,20 +119,25 @@ class ABGridNetwork(object):
     def get_network_stats(self, G):
         # compute networks params
         df = pd.concat([
-            pd.Series(reduce(lambda acc, itr: { **acc, **{ itr : ", ".join(G.neighbors(itr)) } }, G.nodes(), {}), name="lns"),
+            # store edges for each node
+            pd.Series(nx.to_pandas_adjacency(G).apply(
+                lambda x: ", ".join(x[x > 0].index.values), axis=1), name="lns"),
+            # store in_degree_centrality
             pd.Series(nx.in_degree_centrality(G), name="ic").round(3),
+            # store pagerank_centrality
             pd.Series(nx.pagerank(G, max_iter=1000), name="pr").round(3),
+            # store betweenness_centrality centrality
             pd.Series(nx.betweenness_centrality(G), name="bc").round(3),
+            # store closeness_centrality centrality
             pd.Series(nx.closeness_centrality(G), name="cc").round(3),
+            # store other nodes reachability for each node
             pd.Series(
-                {n: (len(x)-0)/len(G.nodes()) for n, x in dict(nx.all_pairs_shortest_path_length(G)).items()}, name="or"
-            ).round(3),
+                {n: len(x) for n, x in dict(nx.all_pairs_shortest_path_length(G)).items()}, name="or"
+            ).div(len(G.nodes())).round(3),
         ], axis=1)
-        # add identification of no_indegree nodes
-        df["ni"] = (df["ic"]
-            .mask(df["ic"] == 0, "x")
-            .mask(df["ic"] > 0, "")
-        )
+        print(dict(nx.all_pairs_shortest_path_length(G)).items())
+        # add identification of nodes with no indegree
+        df = df.assign(ni=(lambda x: (x['ic'] == 0).astype(int)))
         # compute ranks of networks params
         ranks = (df.iloc[:, 1:-1]
                  .apply(lambda x: x.rank(method="dense", ascending=False))

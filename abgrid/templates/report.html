@@ -26,7 +26,7 @@
     <td>{{ data[k].bc_r | int  }}</td>
     <td>{{ data[k].cc_r | int  }}</td>
     <td>{{ '%0.2f'| format(data[k].or | round(2)) }}</td>
-    <td>{{ data[k].ni }}</td>
+    <td>{% if data[k].ni %}x{% endif%}</td>
   </tr>
   {% endfor %}
 </table>
