@@ -12,8 +12,8 @@ class ABGridData(object):
     def __init__(self, project, yaml_loader):
       self.project = project
       self.project_filepath = Path(f"{project}.yaml")
-      self.groups_filepaths = Path(
-          "./").glob(f"{project}_gruppo_*.yaml")
+      self.groups_filepaths = list(Path(
+          "./").glob(f"{project}_gruppo_*.yaml"))
       self.yaml_loader = yaml_loader
 
     def get_answersheets_data(self):

@@ -49,12 +49,10 @@ class ABGridNetwork(object):
         return unpacked_edges
 
     def validate_nodes(self):
-        # determine whethere nodes are correct 
+        # determine whether nodes are consistent with project data 
         return len(self.nodes_a.symmetric_difference(self.nodes_b)) == 0
 
     def compute_networks(self):
-        # unpack edges
-        edges_A, edges_B = self.edges
         # create netowrk A & netowrk B
         Ga, Gb = nx.DiGraph(self.edges_a), nx.DiGraph(self.edges_b)
         # create locations A & locations B
@@ -142,8 +140,10 @@ class ABGridNetwork(object):
             pd.Series(no_indegree, name="ni")
         ], axis=1)
         # compute networks params
-        ranks = df.iloc[:, 1:-1].apply(lambda x: 
-                x.rank(method="dense", ascending=False)).rename(columns={"ic":"ic_r","pr":"pr_r","bc":"bc_r","cc":"cc_r", "or":"or_r"})
+        ranks = (df.iloc[:, 1:-1]
+                .apply(lambda x: x.rank(method="dense", ascending=False))
+                .rename(columns={"ic":"ic_r","pr":"pr_r","bc":"bc_r","cc":"cc_r", "or":"or_r"})
+            )
         # finalize dataframe
         df = pd.concat([df, ranks], axis=1)
         # add name to stats dataframe index
