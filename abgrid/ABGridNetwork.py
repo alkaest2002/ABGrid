@@ -5,6 +5,7 @@ import networkx as nx
 import matplotlib
 import matplotlib.pyplot as plt
 
+from functools import reduce
 from pathlib import Path
 from base64 import b64encode
 from cerberus import Validator, DocumentError, SchemaError
@@ -49,7 +50,7 @@ class ABGridNetwork(object):
         return unpacked_edges
 
     def validate_nodes(self):
-        # determine whether nodes are consistent with project data 
+        # determine whether nodes are consistent with project data
         return len(self.nodes_a.symmetric_difference(self.nodes_b)) == 0
 
     def compute_networks(self):
@@ -117,33 +118,27 @@ class ABGridNetwork(object):
         return sum([c_max - value for value in centrality_values]) / ((n-1)*(n-2))
 
     def get_network_stats(self, G):
-        # init links dict
-        links = dict()
-        # init no indegree dict
-        no_indegree = dict()
-        # loop through nodes
-        for node in G.nodes():
-            # add x to nodes that do not have indegree, otherwise empty string
-            no_indegree[node] = "x" if G.in_degree(node) == 0 else ""
-            # add joined neighbors
-            links[node] = (", ".join(G.neighbors(node)))
         # compute networks params
         df = pd.concat([
-            pd.Series(links, name="lns"),
-            pd.Series(nx.in_degree_centrality(G), name="ic"),
-            pd.Series(nx.pagerank(G, max_iter=1000), name="pr"),
-            pd.Series(nx.betweenness_centrality(G), name="bc"),
-            pd.Series(nx.closeness_centrality(G), name="cc"),
+            pd.Series(reduce(lambda acc, itr: { **acc, **{ itr : ", ".join(G.neighbors(itr)) } }, G.nodes(), {}), name="lns"),
+            pd.Series(nx.in_degree_centrality(G), name="ic").round(3),
+            pd.Series(nx.pagerank(G, max_iter=1000), name="pr").round(3),
+            pd.Series(nx.betweenness_centrality(G), name="bc").round(3),
+            pd.Series(nx.closeness_centrality(G), name="cc").round(3),
             pd.Series(
                 {n: (len(x)-0)/len(G.nodes()) for n, x in dict(nx.all_pairs_shortest_path_length(G)).items()}, name="or"
-            ),
-            pd.Series(no_indegree, name="ni")
+            ).round(3),
         ], axis=1)
-        # compute networks params
+        # add identification of no_indegree nodes
+        df["ni"] = (df["ic"]
+            .mask(df["ic"] == 0, "x")
+            .mask(df["ic"] > 0, "")
+        )
+        # compute ranks of networks params
         ranks = (df.iloc[:, 1:-1]
-                .apply(lambda x: x.rank(method="dense", ascending=False))
-                .rename(columns={"ic":"ic_r","pr":"pr_r","bc":"bc_r","cc":"cc_r", "or":"or_r"})
-            )
+                 .apply(lambda x: x.rank(method="dense", ascending=False))
+                 .rename(columns={"ic": "ic_r", "pr": "pr_r", "bc": "bc_r", "cc": "cc_r", "or": "or_r"})
+                 )
         # finalize dataframe
         df = pd.concat([df, ranks], axis=1)
         # add name to stats dataframe index
@@ -156,9 +151,10 @@ class ABGridNetwork(object):
             dict(
                 nodes=G.number_of_nodes(),
                 edges=G.number_of_edges(),
-                degree_centralization=self.get_degree_centralization(G),
-                transitivity=nx.transitivity(G),
-                reciprocity=nx.reciprocity(G)
+                degree_centralization=round(
+                    self.get_degree_centralization(G), 3),
+                transitivity=round(nx.transitivity(G), 3),
+                reciprocity=round(nx.reciprocity(G), 3)
             ),
             # micro-level stats
             df
