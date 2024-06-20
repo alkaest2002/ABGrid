@@ -1,0 +1,19 @@
+IDGruppo: 1
+scelteA:
+  - A: F,H
+  - B: F,H
+  - C: D,F
+  - D: A,G
+  - E: A,D
+  - F: A,D
+  - G: A,E
+  - H: A,F
+scelteB:
+  - A: B,D
+  - B: D,G
+  - C: B,E
+  - D: B,H
+  - E: B,C
+  - F: C,E
+  - G: B,C
+  - H: C,D

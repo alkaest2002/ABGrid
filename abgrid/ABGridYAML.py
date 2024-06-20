@@ -4,7 +4,7 @@ from pathlib import Path
 from cerberus import Validator, DocumentError, SchemaError
 
 
-class ABGridYAML():
+class ABGridYAML(object):
 
     def __init__(self):
         self.validator = Validator(required_all=True)

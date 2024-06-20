@@ -1,19 +1,19 @@
 IDGruppo: 3
 scelteA:
-  - A: D,H
-  - B: E,F
-  - C: B,D
+  - A: F,H
+  - B: C,H
+  - C: F,H
   - D: F,H
-  - E: B,F
-  - F: B,E
-  - G: D,H
-  - H: D,G
+  - E: F,G
+  - F: C,H
+  - G: A,H
+  - H: A,G
 scelteB:
-  - A: B,E
-  - B: D,H
-  - C: A,H
+  - A: D,G
+  - B: D,E
+  - C: D,E
   - D: C,E
-  - E: G,H
-  - F: D,G
-  - G: B,E
-  - H: E,F
+  - E: C,D
+  - F: B,D
+  - G: B,D
+  - H: B,D

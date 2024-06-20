@@ -7,7 +7,7 @@ from abgrid.ABGridYAML import ABGridYAML
 from pathlib import Path
 
 
-class ABGridData():
+class ABGridData(object):
 
     def __init__(self, project, yaml_loader):
       self.project = project

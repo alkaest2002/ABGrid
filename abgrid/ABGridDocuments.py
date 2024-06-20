@@ -2,12 +2,13 @@ import yaml
 import re
 import string
 import jinja2
+import json
 
 from abgrid.ABGridErrors import ValidationError
 from pathlib import Path
 from weasyprint import HTML
 
-class ABGridDocuments():
+class ABGridDocuments(object):
 
     def __init__(self, abgrid_data):
         self.jinja_env = jinja2.Environment(
@@ -106,14 +107,21 @@ class ABGridDocuments():
 
     @notify_decorator("report")
     def generate_reports(self):
+        # init report data object
+        all_data = {}
         # loop through groups
         for group_file in self.abgrid_data.groups_filepaths:
             # load report data for current group
             report_data, report_errors = self.abgrid_data.get_report_data(
                 group_file)
-            # on error
+            # on  errors
             if report_errors:
                 raise ValidationError(report_errors)
+            # add current group data
+            all_data[ f"{self.abgrid_data.project}_gruppo_{report_data['group_id']}" ] = report_data
             # render report
             self.render_pdf("report", report_data, f"gruppo_{
                             report_data['group_id']}")
+        # save all data
+        with open(Path(f"./{self.abgrid_data.project}_data.json"), "w") as fout:
+            fout.write(json.dumps(all_data))

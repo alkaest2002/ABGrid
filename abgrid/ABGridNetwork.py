@@ -15,7 +15,7 @@ matplotlib.rc('font', **{'size': 8})
 matplotlib.use("Agg")
 
 
-class ABGridNetwork():
+class ABGridNetwork(object):
 
     def __init__(self, edges):
         # set conversion inch -> cm
@@ -129,22 +129,23 @@ class ABGridNetwork():
             no_indegree[node] = "x" if G.in_degree(node) == 0 else ""
             # add joined neighbors
             links[node] = (", ".join(G.neighbors(node)))
-        # build stats dataframe
+        # compute networks params
         df = pd.concat([
             pd.Series(links, name="lns"),
-            pd.Series(nx.in_degree_centrality(G), name="ic").rank(
-                method="dense", ascending=False),
-            pd.Series(nx.pagerank(G, max_iter=1000), name="pr").rank(
-                method="dense", ascending=False),
-            pd.Series(nx.betweenness_centrality(G), name="bc").rank(
-                method="dense", ascending=False),
-            pd.Series(nx.closeness_centrality(G), name="cc").rank(
-                method="dense", ascending=False),
+            pd.Series(nx.in_degree_centrality(G), name="ic"),
+            pd.Series(nx.pagerank(G, max_iter=1000), name="pr"),
+            pd.Series(nx.betweenness_centrality(G), name="bc"),
+            pd.Series(nx.closeness_centrality(G), name="cc"),
             pd.Series(
                 {n: (len(x)-0)/len(G.nodes()) for n, x in dict(nx.all_pairs_shortest_path_length(G)).items()}, name="or"
             ),
             pd.Series(no_indegree, name="ni")
         ], axis=1)
+        # compute networks params
+        ranks = df.iloc[:, 1:-1].apply(lambda x: 
+                x.rank(method="dense", ascending=False)).rename(columns={"ic":"ic_r","pr":"pr_r","bc":"bc_r","cc":"cc_r", "or":"or_r"})
+        # finalize dataframe
+        df = pd.concat([df, ranks], axis=1)
         # add name to stats dataframe index
         df.index.name = "letter"
         # sort index

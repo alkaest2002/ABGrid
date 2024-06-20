@@ -21,11 +21,11 @@
   <tr>
     <td>{{ k }}</td>
     <td>{{ data[k].lns }}</td>
-    <td>{{ data[k].ic | int }}</td>
-    <td>{{ data[k].pr | int }}</td>
-    <td>{{ data[k].bc | int }}</td>
-    <td>{{ data[k].cc | int }}</td>
-    <td>{{ '%0.2f'|format(data[k].or | round(2)) }}</td>
+    <td>{{ data[k].ic_r | int }}</td>
+    <td>{{ data[k].pr_r | int  }}</td>
+    <td>{{ data[k].bc_r | int  }}</td>
+    <td>{{ data[k].cc_r | int  }}</td>
+    <td>{{ '%0.2f'| format(data[k].or | round(2)) }}</td>
     <td>{{ data[k].ni }}</td>
   </tr>
   {% endfor %}
