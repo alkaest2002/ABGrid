@@ -4,9 +4,9 @@ import string
 import jinja2
 import json
 
-from abgrid.ABGridErrors import ValidationError
 from pathlib import Path
 from weasyprint import HTML
+from abgrid.ABGridErrors import ValidationError
 
 class ABGridDocuments(object):
 

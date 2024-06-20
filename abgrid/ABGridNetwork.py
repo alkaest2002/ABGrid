@@ -5,15 +5,11 @@ import networkx as nx
 import matplotlib
 import matplotlib.pyplot as plt
 
-from pathlib import Path
 from base64 import b64encode
-from cerberus import Validator, DocumentError, SchemaError
-from weasyprint import HTML
 
 # customize matplotlib
 matplotlib.rc('font', **{'size': 8})
 matplotlib.use("Agg")
-
 
 class ABGridNetwork(object):
 
@@ -135,7 +131,6 @@ class ABGridNetwork(object):
                 {n: len(x) for n, x in dict(nx.all_pairs_shortest_path_length(G)).items()}, name="or"
             ).div(len(G.nodes())).round(3),
         ], axis=1)
-        print(dict(nx.all_pairs_shortest_path_length(G)).items())
         # add identification of nodes with no indegree
         df = df.assign(ni=(lambda x: (x['ic'] == 0).astype(int)))
         # compute ranks of networks params
