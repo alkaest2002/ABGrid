@@ -22,9 +22,9 @@
     <td>{{ k }}</td>
     <td>{{ data[k].lns }}</td>
     <td>{{ data[k].ic_r | int }}</td>
-    <td>{{ data[k].pr_r | int  }}</td>
-    <td>{{ data[k].bc_r | int  }}</td>
-    <td>{{ data[k].cc_r | int  }}</td>
+    <td>{{ data[k].pr_r | int }}</td>
+    <td>{{ data[k].bc_r | int }}</td>
+    <td>{{ data[k].cc_r | int }}</td>
     <td>{{ '%0.2f'| format(data[k].or | round(2)) }}</td>
     <td>{% if data[k].ni %}x{% endif%}</td>
   </tr>
@@ -47,7 +47,7 @@
     </td>
   </tr>
   <tr>
-    <td class="hero">{{ type }}</td>
+    <td class="hero letter-{% if type == 'A' %}A{% else %}B{% endif %}">{{ type }}</td>
   </tr>
   <tr>
     <td>
@@ -116,11 +116,19 @@
     }
 
     .letter-A {
+      color: #0000FF;
+    }
+
+    .letter-B {
+      color: #FF0000;
+    }
+
+    .letter-A-reversed {
       background-color: #0000FF;
       color: #fff;
     }
 
-    .letter-B {
+    .letter-B-reversed {
       background-color: #FF0000;
       color: #fff;
     }
@@ -210,15 +218,15 @@
   <div class="page">
     <div class="intro">
       <div class="logo">
-        <div class="logo-letter letter-A">A</div>
-        <div class="logo-letter letter-B">B</div>
+        <div class="logo-letter letter-A-reversed">A</div>
+        <div class="logo-letter letter-B-reversed">B</div>
         <div>GRID</div>
       </div>
     </div>
     <div class="disclaimer">
       <em>
-        Il presente report è stato generato da un computer. La sua interpretazione è riservata agli psicologi e/o periti
-        selettori che hanno frequentato il corso in "Dinamiche di gruppo e introduzione alla Network Analysis".
+        Il presente report è stato generato da un computer. La sua interpretazione è riservata agli specialisti HR che
+        hanno frequentato il corso in "Dinamiche di gruppo e introduzione alla Network Analysis".
       </em>
     </div>
     <div class="report-info">
