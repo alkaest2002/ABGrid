@@ -114,17 +114,17 @@ class ABGridNetwork(object):
             pd.Series(nx.to_pandas_adjacency(G).apply(
                 lambda x: ", ".join(x[x > 0].index.values), axis=1), name="lns"),
             # store in_degree_centrality
-            pd.Series(nx.in_degree_centrality(G), name="ic").round(3),
+            pd.Series(nx.in_degree_centrality(G), name="ic"),
             # store pagerank_centrality
-            pd.Series(nx.pagerank(G, max_iter=1000), name="pr").round(3),
+            pd.Series(nx.pagerank(G, max_iter=1000), name="pr"),
             # store betweenness_centrality
-            pd.Series(nx.betweenness_centrality(G), name="bc").round(3),
+            pd.Series(nx.betweenness_centrality(G), name="bc"),
             # store closeness_centrality
-            pd.Series(nx.closeness_centrality(G), name="cc").round(3),
+            pd.Series(nx.closeness_centrality(G), name="cc"),
             # store other nodes reachability for each node
             pd.Series(
                 reduce(lambda acc, itr: {**acc, **{itr: nx.local_reaching_centrality(G, itr)}}, G.nodes(), {}), name="or"
-            ).round(3),
+            ),
         ], axis=1)
         # add identification of nodes with no in_degree
         df = df.assign(ni=(lambda x: (x['ic'] == 0).astype(int)))
@@ -134,11 +134,9 @@ class ABGridNetwork(object):
                  .rename(columns={"ic": "ic_r", "pr": "pr_r", "bc": "bc_r", "cc": "cc_r", "or": "or_r"})
                  )
         # finalize dataframe
-        df = pd.concat([df, ranks], axis=1)
+        df = pd.concat([df, ranks], axis=1).round(3).sort_index()
         # add name to stats dataframe index
         df.index.name = "letter"
-        # sort index
-        df = df.sort_index()
         # return stats tuple
         return (
             # macro-level stats
