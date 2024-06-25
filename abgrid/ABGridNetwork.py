@@ -123,8 +123,8 @@ class ABGridNetwork(object):
             pd.Series(nx.closeness_centrality(G), name="cc").round(3),
             # store other nodes reachability for each node
             pd.Series(
-                {n: len(x) for n, x in dict(nx.all_pairs_shortest_path_length(G)).items()}, name="or"
-            ).div(len(G.nodes())).clip(0, 1).round(3),
+                reduce(lambda acc, itr: {**acc, **{itr: nx.local_reaching_centrality(G, itr)}}, G.nodes(), {}), name="or"
+            ).round(3),
         ], axis=1)
         # add identification of nodes with no in_degree
         df = df.assign(ni=(lambda x: (x['ic'] == 0).astype(int)))
