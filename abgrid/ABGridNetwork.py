@@ -6,10 +6,12 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 from base64 import b64encode
+from functools import reduce
 
 # customize matplotlib
 matplotlib.rc('font', **{'size': 8})
 matplotlib.use("Agg")
+
 
 class ABGridNetwork(object):
 
@@ -31,18 +33,11 @@ class ABGridNetwork(object):
         self.graphB = None
 
     def unpack_edges(self, packed_edges):
-        # init edges list
-        unpacked_edges = []
-        # loop through rows in data
-        for row in packed_edges:
-            # loop through nodes and edges
-            for node, edges in row.items():
-                # split edges
-                for edge in edges.split(","):
-                    # append edge to edges list
-                    unpacked_edges.append((node, edge))
-        # return edges list
-        return unpacked_edges
+        # from [{ A: B,C, B: A,C, C: A,B}] --> [(A,B), (A,C), (B,A), (B,C), (C,A), (C,B)]
+        return reduce(
+            lambda acc, itr: [*acc, *[(node_a, node_b) for node_a, edges in itr.items()
+                                      for node_b in edges.split(",")]], packed_edges, []
+        )
 
     def validate_nodes(self):
         # determine whether nodes are consistent with project data
@@ -107,7 +102,7 @@ class ABGridNetwork(object):
         n = Gu.order()
         # store centrality values
         centrality_values = dict(Gu.degree()).values()
-        # determine max degree
+        # determine max centrality
         c_max = max(centrality_values)
         # return network centrality
         return sum([c_max - value for value in centrality_values]) / ((n-1)*(n-2))
@@ -122,16 +117,16 @@ class ABGridNetwork(object):
             pd.Series(nx.in_degree_centrality(G), name="ic").round(3),
             # store pagerank_centrality
             pd.Series(nx.pagerank(G, max_iter=1000), name="pr").round(3),
-            # store betweenness_centrality centrality
+            # store betweenness_centrality
             pd.Series(nx.betweenness_centrality(G), name="bc").round(3),
-            # store closeness_centrality centrality
+            # store closeness_centrality
             pd.Series(nx.closeness_centrality(G), name="cc").round(3),
             # store other nodes reachability for each node
             pd.Series(
                 {n: len(x) for n, x in dict(nx.all_pairs_shortest_path_length(G)).items()}, name="or"
-            ).div(len(G.nodes())).round(3),
+            ).div(len(G.nodes())).clip(0, 1).round(3),
         ], axis=1)
-        # add identification of nodes with no indegree
+        # add identification of nodes with no in_degree
         df = df.assign(ni=(lambda x: (x['ic'] == 0).astype(int)))
         # compute ranks of networks params
         ranks = (df.iloc[:, 1:-1]
