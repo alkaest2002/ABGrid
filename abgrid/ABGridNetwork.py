@@ -108,7 +108,7 @@ class ABGridNetwork(object):
         return sum([c_max - value for value in centrality_values]) / ((n-1)*(n-2))
 
     def get_network_stats(self, G):
-        # compute networks params
+        # create dataframe
         df = pd.concat([
             # store edges for each node
             pd.Series(nx.to_pandas_adjacency(G).apply(
@@ -126,7 +126,7 @@ class ABGridNetwork(object):
                 reduce(lambda acc, itr: {**acc, **{itr: nx.local_reaching_centrality(G, itr)}}, G.nodes(), {}), name="or"
             ),
         ], axis=1)
-        # add identification of nodes with no in_degree
+        # add identification of nodes with no in_degree to dataframe
         df = df.assign(ni=(lambda x: (x['ic'] == 0).astype(int)))
         # compute ranks of networks params
         ranks = (df.iloc[:, 1:-1]
@@ -135,11 +135,11 @@ class ABGridNetwork(object):
                  )
         # finalize dataframe
         df = pd.concat([df, ranks], axis=1).round(3).sort_index()
-        # add name to stats dataframe index
+        # add name to dataframe index
         df.index.name = "letter"
-        # return stats tuple
+        # return tuple
         return (
-            # macro-level stats
+            # macro-level statistics
             dict(
                 nodes=G.number_of_nodes(),
                 edges=G.number_of_edges(),
@@ -148,6 +148,6 @@ class ABGridNetwork(object):
                 transitivity=round(nx.transitivity(G), 3),
                 reciprocity=round(nx.reciprocity(G), 3)
             ),
-            # micro-level stats
+            # micro-level statistics as dataframe
             df
         )
