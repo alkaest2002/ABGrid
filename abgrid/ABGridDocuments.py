@@ -8,11 +8,14 @@ from pathlib import Path
 from weasyprint import HTML
 from abgrid.ABGridErrors import ValidationError
 
+# init jinja environment
+jinja_env = jinja2.Environment(
+    loader=jinja2.FileSystemLoader(["./abgrid/templates", "./templates"]))
+
+
 class ABGridDocuments(object):
 
     def __init__(self, abgrid_data):
-        self.jinja_env = jinja2.Environment(
-            loader=jinja2.FileSystemLoader(["./abgrid/templates", "./templates"]))
         self.abgrid_data = abgrid_data
 
     # decorator to add print messages
@@ -32,7 +35,7 @@ class ABGridDocuments(object):
 
     @staticmethod
     @notify_decorator("project")
-    def generate_project_file(project_name, n_groups, n_members_per_group, jinja_env):
+    def generate_project_file(project_name, n_groups, n_members_per_group):
         # open project file template
         with open(Path("./abgrid/templates/project.yaml"), 'r') as fin:
             # load yaml data
@@ -47,7 +50,7 @@ class ABGridDocuments(object):
 
     @staticmethod
     @notify_decorator("group")
-    def generate_group_inputs(project_name, n_groups, n_members_per_group, jinja_env):
+    def generate_group_inputs(project_name, n_groups, n_members_per_group):
         # build letter list for members (i.e., 5 --> A,B,C,D,E)
         members_per_group = string.ascii_uppercase[:n_members_per_group]
         # get group template
@@ -77,7 +80,7 @@ class ABGridDocuments(object):
         # set template
         doc_template = f"{doc_type}.html"
         # get template
-        tpl = self.jinja_env.get_template(doc_template)
+        tpl = jinja_env.get_template(doc_template)
         # render template
         rendered_tpl = tpl.render(doc_data)
         # build file name
@@ -107,7 +110,8 @@ class ABGridDocuments(object):
         all_data = {}
         # check if group file(s) are present, otherwise raise error
         if len(self.abgrid_data.groups_filepaths) == 0:
-            raise ValidationError(f"Group file(s) for {self.abgrid_data.project} are missing")
+            raise ValidationError(f"Group file(s) for {
+                                  self.abgrid_data.project} are missing")
         # loop through groups
         for group_file in self.abgrid_data.groups_filepaths:
             # load report data for current group
@@ -117,7 +121,8 @@ class ABGridDocuments(object):
             if report_errors:
                 raise ValidationError(report_errors)
             # add current group data
-            all_data[ f"{self.abgrid_data.project}_gruppo_{report_data['group_id']}" ] = report_data
+            all_data[f"{self.abgrid_data.project}_gruppo_{
+                report_data['group_id']}"] = report_data
             # render report
             self.render_pdf("report", report_data, f"gruppo_{
                             report_data['group_id']}")
