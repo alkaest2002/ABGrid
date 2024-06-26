@@ -1,7 +1,7 @@
 {% macro network_info(info) %}
 <span>
-  ND {{ info.nodes }}, ED {{ info.edges }}, DC {{ (info.degree_centralization * 100)|round|int }}%, TR {{
-  (info.transitivity * 100)|round|int }}%, RP {{ (info.reciprocity * 100)|round|int }}%
+  NN {{ info.network_nodes }}, NE {{ info.network_edges }}, NC {{ (info.network_centralization * 100)|round|int }}%, NT {{
+  (info.network_transitivity * 100)|round|int }}%, NR {{ (info.network_reciprocity * 100)|round|int }}%
 </span>
 {% endmacro %}
 
@@ -246,8 +246,8 @@
       </tr>
     </table>
     <div class="legend">
-      <b>ND</b> = Number of Nodes, <b>ED</b> = Number of Edges, <b>DC</b> = Degree Centralization, <b>TR</b> =
-      Transitivity<br /><b>RP</b> = Reciprocity, <b>IC</b> = In-Degree Centrality (rango), <b>PR</b> = PageRank
+      <b>NN</b> = Number of Nodes, <b>NE</b> = Number of Edges, <b>NE</b> = Network Centralization, <b>NT</b> =
+      Network Transitivity<br /><b>NP</b> = Network Reciprocity, <b>IC</b> = In-Degree Centrality (rango), <b>PR</b> = PageRank
       Centrality (rango)<br /><b>BC</b> = Betweenness Centrality (rango), <b>CC</b> = Closenness Centrality
       (rango)<br /><b>OR</b> = Other Nodes Reachability (%), <b>NI</b> = No In-Degree.
     </div>

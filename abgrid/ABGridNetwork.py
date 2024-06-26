@@ -95,12 +95,12 @@ class ABGridNetwork(object):
         # return data as svg uri
         return f"data:image/svg+xml;base64,{data}"
 
-    def get_degree_centralization(self, G):
+    def get_network_centralization(self, G):
         # store centralitu values
         centralities = pd.Series(dict(nx.degree(G.to_undirected())))
         # store number of nodes
         number_of_nodes = G.number_of_nodes()
-        # compute and return network centrality value
+        # compute and return network centralization value
         return (
             centralities
             .sub(centralities.max())
@@ -143,12 +143,12 @@ class ABGridNetwork(object):
         return (
             # macro-level statistics
             dict(
-                nodes=G.number_of_nodes(),
-                edges=G.number_of_edges(),
-                degree_centralization=round(
-                    self.get_degree_centralization(G), 3),
-                transitivity=round(nx.transitivity(G), 3),
-                reciprocity=round(nx.reciprocity(G), 3)
+                network_nodes=G.number_of_nodes(),
+                network_edges=G.number_of_edges(),
+                network_centralization=round(
+                    self.get_network_centralization(G), 3),
+                network_transitivity=round(nx.transitivity(G), 3),
+                network_reciprocity=round(nx.reciprocity(G), 3)
             ),
             # micro-level statistics as dataframe
             df
