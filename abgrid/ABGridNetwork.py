@@ -96,7 +96,7 @@ class ABGridNetwork(object):
         return f"data:image/svg+xml;base64,{data}"
 
     def get_network_centralization(self, G):
-        # store centralitu values
+        # store centrality values
         centralities = pd.Series(dict(nx.degree(G.to_undirected())))
         # store number of nodes
         number_of_nodes = G.number_of_nodes()
