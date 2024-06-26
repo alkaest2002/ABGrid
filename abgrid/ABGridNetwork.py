@@ -96,16 +96,18 @@ class ABGridNetwork(object):
         return f"data:image/svg+xml;base64,{data}"
 
     def get_degree_centralization(self, G):
-        # to undirected
-        Gu = G.to_undirected()
-        # determine n
-        n = Gu.order()
-        # store centrality values
-        centrality_values = dict(Gu.degree()).values()
-        # determine max centrality
-        c_max = max(centrality_values)
-        # return network centrality
-        return sum([c_max - value for value in centrality_values]) / ((n-1)*(n-2))
+        # store centralitu values
+        centralities = pd.Series(dict(nx.degree(G.to_undirected())))
+        # store number of nodes
+        number_of_nodes = G.number_of_nodes()
+        # compute and return network centrality value
+        return (
+            centralities
+            .sub(centralities.max())
+            .abs()
+            .sum()
+            / ((number_of_nodes-1)*(number_of_nodes-2))
+        )
 
     def get_network_stats(self, G):
         # create dataframe
