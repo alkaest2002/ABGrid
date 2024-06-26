@@ -20,8 +20,8 @@ class ABGridNetwork(object):
         self.cm = 1/2.54
 
         self.edges = edges
-        self.edges_a = self.unpack_edges(edges[0])
-        self.edges_b = self.unpack_edges(edges[1])
+        self.edges_a = self.unpack_network_edges(edges[0])
+        self.edges_b = self.unpack_network_edges(edges[1])
         self.nodes_a = set(sum(map(list, edges[0]), []))
         self.nodes_b = set(sum(map(list, edges[1]), []))
 
@@ -32,7 +32,7 @@ class ABGridNetwork(object):
         self.Gb_data = None
         self.graphB = None
 
-    def unpack_edges(self, packed_edges):
+    def unpack_network_edges(self, packed_edges):
         # from [{ A: B,C, B: A,C, C: A,B }] to [(A,B), (A,C), (B,A), (B,C), (C,A), (C,B)]
         return reduce(
             lambda acc, itr: [*acc, *[(node_a, node_b) for node_a, edges in itr.items()

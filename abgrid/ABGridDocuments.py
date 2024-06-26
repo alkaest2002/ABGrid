@@ -48,8 +48,6 @@ class ABGridDocuments(object):
     @staticmethod
     @notify_decorator("group")
     def generate_group_inputs(project_name, n_groups, n_members_per_group, jinja_env):
-        # init group files list
-        groups_files = []
         # build letter list for members (i.e., 5 --> A,B,C,D,E)
         members_per_group = string.ascii_uppercase[:n_members_per_group]
         # get group template
@@ -63,11 +61,9 @@ class ABGridDocuments(object):
             # remove blank lines from rendered template
             rendered_tpl = "\n".join(
                 [line for line in rendered_tpl.split("\n") if len(line) > 0])
-            # save current rendered to file
+            # store rendered template to file path
             group_file_path = Path(f"{project_name}_gruppo_{group_id}.yaml")
-            # append group_file_path to lost
-            groups_files.append(group_file_path)
-            # write group file to disk
+            # write rendered template to disk
             with open(group_file_path, "w") as file:
                 file.write(rendered_tpl)
 
