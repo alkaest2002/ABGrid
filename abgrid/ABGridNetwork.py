@@ -33,7 +33,7 @@ class ABGridNetwork(object):
         self.graphB = None
 
     def unpack_edges(self, packed_edges):
-        # from [{ A: B,C, B: A,C, C: A,B}] --> [(A,B), (A,C), (B,A), (B,C), (C,A), (C,B)]
+        # from [{ A: B,C, B: A,C, C: A,B }] to [(A,B), (A,C), (B,A), (B,C), (C,A), (C,B)]
         return reduce(
             lambda acc, itr: [*acc, *[(node_a, node_b) for node_a, edges in itr.items()
                                       for node_b in edges.split(",")]], packed_edges, []
@@ -44,19 +44,19 @@ class ABGridNetwork(object):
         return len(self.nodes_a.symmetric_difference(self.nodes_b)) == 0
 
     def compute_networks(self):
-        # create netowrk A & netowrk B
+        # create network A & B
         Ga, Gb = nx.DiGraph(self.edges_a), nx.DiGraph(self.edges_b)
-        # create locations A & locations B
+        # create locations A & B
         loca, locb = nx.spring_layout(
             Ga, k=.5, seed=42), nx.spring_layout(Gb, k=.3, seed=42)
-        # set netoworks data
+        # set network data and graphs
         self.Ga_info, self.Ga_data = self.get_network_stats(Ga)
         self.Gb_info, self.Gb_data = self.get_network_stats(Gb)
         self.graphA = self.get_network_graph(Ga, loca, graphType="A")
         self.graphB = self.get_network_graph(Gb, locb, graphType="B")
 
     def get_network_graph(self, G, loc, graphType="A"):
-        # define color based of type of network (either A or B)
+        # define color based on type of network (A or B)
         color = "#0000FF" if graphType == "A" else "#FF0000"
         # init file buffer
         buffer = io.BytesIO()
@@ -71,15 +71,15 @@ class ABGridNetwork(object):
         # draw nodes
         nx.draw_networkx_nodes(
             G.nodes(), loc, node_color=color, edgecolors=color, ax=ax)
-        # store mutual preferences
-        mutual_prefs = [e for e in G.edges() if e[::-1] in G.edges]
-        # store non mutual preferences
-        non_mutual_prefs = [e for e in G.edges if e not in mutual_prefs]
-        # draw mutual preferences
-        nx.draw_networkx_edges(G, loc, edgelist=mutual_prefs,
+        # store mutual edges
+        mutual_edges = [e for e in G.edges() if e[::-1] in G.edges]
+        # store non mutual edges
+        non_mutual_edges = [e for e in G.edges if e not in mutual_edges]
+        # draw mutual edges
+        nx.draw_networkx_edges(G, loc, edgelist=mutual_edges,
                                edge_color=color, arrowstyle='-', width=3, ax=ax)
-        # draw non mutual preferences
-        nx.draw_networkx_edges(G, loc, edgelist=non_mutual_prefs, edge_color=color,
+        # draw non mutual edges
+        nx.draw_networkx_edges(G, loc, edgelist=non_mutual_edges, edge_color=color,
                                style="--", arrowstyle='-|>', arrowsize=15, ax=ax)
         # draw labels
         nx.draw_networkx_labels(G, loc, font_color="#FFF",
@@ -92,7 +92,7 @@ class ABGridNetwork(object):
         plt.close(fig)
         # encode buffer to base64
         data = b64encode(buffer.getvalue()).decode()
-        # return data as svg uri
+        # return buffer as svg uri
         return f"data:image/svg+xml;base64,{data}"
 
     def get_network_centralization(self, G):
@@ -128,7 +128,7 @@ class ABGridNetwork(object):
                 reduce(lambda acc, itr: {**acc, **{itr: nx.local_reaching_centrality(G, itr)}}, G.nodes(), {}), name="or"
             ),
         ], axis=1)
-        # add identification of nodes with no in_degree to dataframe
+        # identify nodes with no in_degree and add information to dataframe
         df = df.assign(ni=(lambda x: (x['ic'] == 0).astype(int)))
         # compute ranks of networks params
         ranks = (df.iloc[:, 1:-1]
