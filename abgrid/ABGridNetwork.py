@@ -131,7 +131,7 @@ class ABGridNetwork(object):
         # compute ranks of networks params
         ranks = (df.iloc[:, 1:-1]
                  .apply(lambda x: x.rank(method="dense", ascending=False))
-                 .rename(columns={"ic": "ic_r", "pr": "pr_r", "bc": "bc_r", "cc": "cc_r", "or": "or_r"})
+                 .add_suffix("_r", axis=1)
                  )
         # finalize dataframe
         df = pd.concat([df, ranks], axis=1).round(3).sort_index()
