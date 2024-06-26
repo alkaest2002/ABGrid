@@ -64,16 +64,15 @@ class ABGridDocuments(object):
             # remove blank lines from rendered template
             rendered_tpl = "\n".join(
                 [line for line in rendered_tpl.split("\n") if len(line) > 0])
-            # store rendered template to file path
-            group_file_path = Path(f"{project_name}_gruppo_{group_id}.yaml")
             # write rendered template to disk
-            with open(group_file_path, "w") as file:
+            with open(Path(f"{project_name}_gruppo_{group_id}.yaml"), "w") as file:
                 file.write(rendered_tpl)
 
     @staticmethod
     def init_files(*args):
-        # generate project file and group files
+        # generate project file
         ABGridDocuments.generate_project_file(*args)
+        # generate group files
         ABGridDocuments.generate_group_inputs(*args)
 
     def render_pdf(self, doc_type, doc_data, doc_suffix):
@@ -117,7 +116,7 @@ class ABGridDocuments(object):
             # load report data for current group
             report_data, report_errors = self.abgrid_data.get_report_data(
                 group_file)
-            # on  errors
+            # on errors
             if report_errors:
                 raise ValidationError(report_errors)
             # add current group data
