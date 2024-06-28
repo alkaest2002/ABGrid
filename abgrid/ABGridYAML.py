@@ -48,13 +48,13 @@ class ABGridYAML(object):
         try:
             # validate data
             self.validator.validate(yaml_data, yaml_schema)
-            # return validation errors dict (if validation is paddes dict is empty)
+            # return validation errors dict (if validation is passed dict wiil be empty)
             return self.validator.errors
         # catch exceptions
-        except DocumentError as e:
+        except DocumentError:
             # return error message
             return "Document was loaded but cannot be evaluated."
-        except SchemaError as e:
+        except SchemaError:
             # return error message
             return "Invalid yaml validation schema."
 
@@ -64,16 +64,14 @@ class ABGridYAML(object):
             with open(yaml_file_path, 'r') as file:
                 # parse yaml data
                 yaml_data = yaml.safe_load(file)
-            # validate yaml data
-            validation_errors = self.validate(yaml_type, yaml_data)
-            # if validation is ok
-            if not validation_errors:
-                # return yaml data and None as errors
-                return (yaml_data, None)
-            # on validation error
-            else:
+            # if validation is not ok
+            if validation_errors := self.validate(yaml_type, yaml_data):
                 # return None as data and errors
                 return (None, validation_errors)
+            # on validation error
+            else:
+                # return yaml data and None as errors
+                return (yaml_data, None)
         # catch exceptions
         except FileNotFoundError:
             # return None as data and errors
