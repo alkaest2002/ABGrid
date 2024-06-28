@@ -123,7 +123,7 @@ class ABGridNetwork(object):
             pd.Series(nx.betweenness_centrality(G), name="bc"),
             # store closeness_centrality
             pd.Series(nx.closeness_centrality(G), name="cc"),
-            # store other nodes reachability for each node
+            # store local reaching centrality for each node
             pd.Series(
                 reduce(lambda acc, itr: {**acc, **{itr: nx.local_reaching_centrality(G, itr)}}, G.nodes(), {}), name="or"
             ),
