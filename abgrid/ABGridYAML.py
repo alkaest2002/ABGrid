@@ -7,7 +7,7 @@ from cerberus import Validator, DocumentError, SchemaError
 class ABGridYAML(object):
 
     def __init__(self):
-        self.validator = Validator(required_all=True)
+        self.validator = Validator(require_all=True) # type: ignore
         self.project_schema = {
             "titolo": {"type": "string"},
             "numero_gruppi": {"type": "integer", "min": 1, "max": 20},
@@ -47,9 +47,9 @@ class ABGridYAML(object):
         yaml_schema = self.project_schema if yaml_type == "project" else self.group_schema
         try:
             # validate data
-            self.validator.validate(yaml_data, yaml_schema)
+            self.validator.validate(yaml_data, yaml_schema) # type: ignore
             # return validation errors dict (if validation is passed dict wiil be empty)
-            return self.validator.errors
+            return self.validator.errors # type: ignore
         # catch exceptions
         except DocumentError:
             # return error message

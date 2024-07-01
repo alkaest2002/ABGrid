@@ -83,7 +83,7 @@ class ABGridNetwork(object):
                                style="--", arrowstyle='-|>', arrowsize=15, ax=ax)
         # draw labels
         nx.draw_networkx_labels(G, loc, font_color="#FFF",
-                                font_weight=True, font_size=14, ax=ax)
+                                font_weight="normal", font_size=13, ax=ax)
         # ------------------------------------------------------------------------------------------
         # save figure to buffer
         fig.savefig(buffer, format="svg", bbox_inches='tight',
@@ -103,8 +103,7 @@ class ABGridNetwork(object):
         # compute and return network centralization value
         return (
             centralities
-            .sub(centralities.max())
-            .abs()
+            .rsub(centralities.max())
             .sum()
             / ((number_of_nodes-1)*(number_of_nodes-2))
         )
@@ -136,9 +135,12 @@ class ABGridNetwork(object):
                  .add_suffix("_r", axis=1)
                  )
         # finalize dataframe
-        df = pd.concat([df, ranks], axis=1).round(3).sort_index()
-        # add name to dataframe index
-        df.index.name = "letter"
+        df = (
+            pd.concat([df, ranks], axis=1)
+            .sort_index()
+            .round(3)
+            .rename_axis(index="letter")
+        )
         # return tuple
         return (
             # macro-level statistics
