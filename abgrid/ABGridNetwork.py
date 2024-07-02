@@ -33,7 +33,8 @@ class ABGridNetwork(object):
         self.graphB = None
 
     def unpack_network_edges(self, packed_edges):
-        # from [{ A: B,C, B: A,C, C: A,B }] to [(A,B), (A,C), (B,A), (B,C), (C,A), (C,B)]
+        print(packed_edges)
+        # from [{"A":"B,C"},{"B":"A,C"}] to [("A","B"),("A","C"),("B","A"),("B","C")]
         return reduce(
             lambda acc, itr: [*acc, *[(node_a, node_b) for node_a, edges in itr.items()
                                       for node_b in edges.split(",")]], packed_edges, []
