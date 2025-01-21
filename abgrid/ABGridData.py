@@ -3,8 +3,6 @@ import string
 
 from pathlib import Path
 from abgrid.ABGridNetwork import ABGridNetwork
-from abgrid.ABGridYAML import ABGridYAML
-
 
 class ABGridData(object):
 

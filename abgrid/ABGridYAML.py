@@ -1,6 +1,5 @@
 import yaml
 
-from pathlib import Path
 from cerberus import Validator, DocumentError, SchemaError
 
 
@@ -77,5 +76,6 @@ class ABGridYAML(object):
             # return None as data and errors
             return (None, "Cannot locate Yaml file.")
         except yaml.YAMLError as e:
+            print(e)
             # return None as data and errors
             return (None, "Yaml file could not be parsed.")
